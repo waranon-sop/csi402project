@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - เสื้อผ้า.com</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/waranon_csi402_5008_Assessment4.styles.css" asp-append-version="true" />
+    <!-- Google Fonts: Prompt -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Font Awesome สำหรับไอคอน -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    @RenderSection("Styles", required: false)
+</head>
+
+<body class="d-flex flex-column min-vh-100 bg-light" style="font-family: 'Prompt', sans-serif;">
+
+    <!-- Header / Navbar -->
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top py-3">
+            <div class="container">
+                <!-- โลโก้แบรนด์ -->
+                <a class="navbar-brand fw-bold fs-4 text-dark" asp-area="" asp-controller="Home" asp-action="Index">
+                    <i class="fa-solid fa-shirt text-primary me-2"></i>เสื้อผ้า.com
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarContent">
+                    <!-- เมนูหลัก -->
+                    <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+                        <li class="nav-item"><a class="nav-link active text-dark px-3" asp-area="" asp-controller="Home"
+                                                    asp-action="Index">หน้าแรก</a></li>
+                            <li class="nav-item"><a class="nav-link text-dark px-3" asp-area="" asp-controller="Product"
+                                                        asp-action="Index">สินค้าทั้งหมด</a></li>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle text-dark px-3" href="#" role="button"
+                                       data-bs-toggle="dropdown" aria-expanded="false">
+                                        หมวดหมู่
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#">เสื้อผ้าผู้ชาย</a></li>
+                                        <li><a class="dropdown-item" href="#">เสื้อผ้าผู้หญิง</a></li>
+                                        <li><a class="dropdown-item" href="#">เครื่องประดับ</a></li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li><a class="dropdown-item" href="#">สินค้าทั้งหมด</a></li>
+                                    </ul>
+                                </li>
+                                <li class="nav-item"><a class="nav-link text-dark px-3" href="#">โปรโมชั่น</a></li>
+                            </ul>
+
+                            <!-- เมนูจัดการระบบ -->
+                            <ul class="navbar-nav align-items-center">
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" href="#" title="ค้นหา"><i
+                                        class="fa-solid fa-magnifying-glass"></i></a>
+                                    </li>
+                                    <li class="nav-item ms-2">
+                                        <a class="nav-link text-dark position-relative" href="#" title="ตะกร้าสินค้า">
+                                            <i class="fa-solid fa-cart-shopping"></i>
+                                            <span
+                                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                                style="font-size: 0.6rem;">
+                                                3
+                                            </span>
+                                        </a>
+                                    </li>
+                                    @if (User.Identity != null && User.Identity.IsAuthenticated)
+                                    {
+                                        <!-- ผู้ใช้ล็อกอินแล้ว -->
+                                        <li class="nav-item dropdown ms-3 mt-2 mt-lg-0">
+                                            <a class="nav-link dropdown-toggle text-dark d-flex align-items-center" href="#"
+                                               role="button" data-bs-toggle="dropdown">
+                                                <i class="fa-solid fa-circle-user fs-5 me-2"></i>@User.Identity.Name
+                                            </a>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-user me-2"></i>โปรไฟล์</a>
+                                                </li>
+                                                <li><a class="dropdown-item" href="#"><i
+                                                    class="fa-solid fa-bag-shopping me-2"></i>ประวัติการสั่งซื้อ</a></li>
+                                                    <li>
+                                                        <hr class="dropdown-divider">
+                                                    </li>
+                                                    <li><a class="dropdown-item text-danger" href="#"><i
+                                                        class="fa-solid fa-right-from-bracket me-2"></i>ออกจากระบบ</a></li>
+                                                    </ul>
+                                                </li>
+                                            }
+                        else
+                                            {
+                                                <!-- ยังไม่ล็อกอิน (Guest) -->
+                                                <li class="nav-item ms-3 mt-2 mt-lg-0">
+                                                    <a class="btn btn-outline-primary rounded-pill px-4" asp-area="" asp-controller="Account"
+                                                       asp-action="Login">เข้าสู่ระบบ</a>
+                                                </li>
+                                                <li class="nav-item ms-2 mt-2 mt-lg-0">
+                                                    <a class="btn btn-primary rounded-pill px-4" asp-area="" asp-controller="Account"
+                                                       asp-action="Register">สมัครสมาชิก</a>
+                                                </li>
+                                            }
+                                        </ul>
+                                    </div>
+                                </div>
+                            </nav>
+                        </header>
+
+                        <!-- ส่วนเนื้อหาหลัก -->
+                        <main role="main" class="flex-grow-1 py-5">
+                            <div class="container">
+                                @RenderBody()
+                            </div>
+                        </main>
+
+                        <!-- Footer -->
+                        <footer class="bg-dark text-light pt-5 pb-3 mt-auto">
+                            <div class="container">
+                                <div class="row">
+                                    <!-- ข้อมูลร้าน -->
+                                    <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
+                                        <h5 class="text-uppercase text-white fw-bold mb-4">
+                                            <i class="fa-solid fa-shirt me-2"></i>เสื้อผ้า.com
+                                        </h5>
+                                        <p class="text-secondary lh-lg">
+                                            ศูนย์รวมแฟชั่นเสื้อผ้าผู้ชายและผู้หญิงที่ทันสมัยที่สุด ช้อปง่าย ส่งไว มั่นใจได้ของแท้ 100%
+                                            พร้อมโปรโมชั่นพิเศษทุกสัปดาห์
+                                        </p>
+                                        <div class="mt-4">
+                                            <a href="#"
+                                               class="btn btn-outline-secondary rounded-circle d-inline-flex align-items-center justify-content-center me-1"
+                                               style="width:38px;height:38px;" role="button"><i class="fab fa-facebook-f"></i></a>
+                                            <a href="#"
+                                               class="btn btn-outline-secondary rounded-circle d-inline-flex align-items-center justify-content-center me-1"
+                                               style="width:38px;height:38px;" role="button"><i class="fab fa-twitter"></i></a>
+                                            <a href="#"
+                                               class="btn btn-outline-secondary rounded-circle d-inline-flex align-items-center justify-content-center me-1"
+                                               style="width:38px;height:38px;" role="button"><i class="fab fa-instagram"></i></a>
+                                        </div>
+                                    </div>
+
+                                    <!-- บริการลูกค้า -->
+                                    <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
+                                        <h5 class="text-uppercase text-white fw-bold mb-4">บริการลูกค้า</h5>
+                                        <ul class="list-unstyled">
+                                            <li class="mb-2"><a href="#"
+                                                                    class="text-secondary text-decoration-none">วิธีการสั่งซื้อสินค้า</a></li>
+                                                <li class="mb-2"><a href="#"
+                                                                        class="text-secondary text-decoration-none">การจัดส่งสินค้าและค่าธรรมเนียม</a></li>
+                                                    <li class="mb-2"><a href="#"
+                                                                            class="text-secondary text-decoration-none">นโยบายการเปลี่ยน/คืนสินค้า</a></li>
+                                                        <li class="mb-2"><a href="#" class="text-secondary text-decoration-none">คำถามที่พบบ่อย
+                                                            (FAQ)</a></li>
+                                                            <li class="mb-2"><a href="#" class="text-secondary text-decoration-none">ตรวจสอบสถานะพัสดุ</a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+
+                                                    <!-- ติดต่อเรา -->
+                                                    <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
+                                                        <h5 class="text-uppercase text-white fw-bold mb-4">ติดต่อเรา</h5>
+                                                        <ul class="list-unstyled text-secondary">
+                                                            <li class="mb-3"><i class="fas fa-map-marker-alt me-3"></i>123 ถนนแฟชั่น เขตสไตล์ กรุงเทพฯ 10110
+                                                            </li>
+                                                            <li class="mb-3"><i class="fas fa-phone me-3"></i>02-123-4567</li>
+                                                            <li class="mb-3"><i class="fas fa-envelope me-3"></i>support@seapha.com</li>
+                                                            <li class="mb-3"><i class="fas fa-clock me-3"></i>จันทร์ - เสาร์ (09:00 - 18:00 น.)</li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+
+                                                <!-- ลิขสิทธิ์ -->
+                                                <div class="text-center text-secondary border-top border-secondary pt-3 mt-4 small">
+                                                    &copy; 2026 - เสื้อผ้า.com - All Rights Reserved.
+                                                </div>
+                                            </div>
+                                        </footer>
+
+                                        <script src="~/lib/jquery/dist/jquery.min.js"></script>
+                                        <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+                                        <script src="~/js/site.js" asp-append-version="true"></script>
+                                        @await RenderSectionAsync("Scripts", required: false)
+                                    </body>
+
+                                </html>
