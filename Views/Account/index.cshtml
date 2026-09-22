@@ -1,9 +1,16 @@
 @{
-    ViewData["Title"] = "AccountIndexpage";
+    ViewData["Title"] = "Account Index";
     Layout = "_BlankLayout";
 }
 
-<div class="container border">
-    Welcome To AccountPage!
-
+<div class="container border mt-4 p-4">
+    <div class="text-center mb-4">
+        <h3 class="text-success">ยินดีต้อนรับเข้าสู่ระบบ</h3>
+    </div>
+    
+    <h4>ข้อมูลจากการเข้าสู่ระบบ (Login)</h4>
+    <p><strong>เข้าสู่ระบบด้วยอีเมล:</strong> @ViewBag.LoginEmail</p>
+    <p><strong>รหัสผ่าน:</strong> @ViewBag.LoginPassword</p>
+    <p><strong>ชื่อ-นามสกุล:</strong> @ViewBag.Name</p>
+    <p><strong>เบอร์โทรศัพท์:</strong> @ViewBag.PhoneNumber</p>
 </div>

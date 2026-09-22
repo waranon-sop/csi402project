@@ -1,0 +1,9 @@
+@model waranon_csi402.ViewModels.Lab5ViewModel;
+
+<form asp-controller="Account" asp-action="Lab5_3">
+    Name: <input asp-for="Name" type="text" />
+    Last Name: <input asp-for="LastName" type="text" />
+    <button type="submit">Submit</button>
+</form>
+
+@ViewBag.name

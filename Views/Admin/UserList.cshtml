@@ -1,0 +1,61 @@
+@{
+    ViewData["Title"] = "User List";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="container mt-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>รายชื่อผู้ใช้งานทั้งหมด (User List)</h3>
+        <a href="/Admin/AddUser" class="btn btn-primary">เพิ่มผู้ใช้งาน</a>
+    </div>
+
+    <table class="table table-bordered table-striped table-hover">
+        <thead>
+            <tr class="table-dark">
+                <th>#</th>
+                <th>ชื่อ - นามสกุล</th>
+                <th>อีเมล</th>
+                <th>เบอร์โทรศัพท์</th>
+                <th>บทบาท (Role)</th>
+                <th>จัดการ</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>John Smith</td>
+                <td>john.smith@example.com</td>
+                <td>081-234-5678</td>
+                <td>Admin</td>
+                <td>
+                    <button class="btn btn-sm btn-warning">แก้ไข</button>
+                    <button class="btn btn-sm btn-danger">ลบ</button>
+                </td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>Alice Somkid</td>
+                <td>alice.s@example.com</td>
+                <td>089-876-5432</td>
+                <td>User</td>
+                <td>
+                    <button class="btn btn-sm btn-warning">แก้ไข</button>
+                    <button class="btn btn-sm btn-danger">ลบ</button>
+                </td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>Bob Martin</td>
+                <td>bob.m@example.com</td>
+                <td>082-333-4444</td>
+                <td>User</td>
+                <td>
+                    <button class="btn btn-sm btn-warning">แก้ไข</button>
+                    <button class="btn btn-sm btn-danger">ลบ</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    
+</div>

@@ -1,0 +1,18 @@
+@model IEnumerable<waranon_csi402.ViewModels.Lab5ViewModel>
+@{
+
+    Layout = "_BlankLayout";
+}
+
+<div>
+    <table class="table table-bordered table-striped table-hover">
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.LastName</td>
+            </tr>
+        }
+    </table>
+   
+</div>

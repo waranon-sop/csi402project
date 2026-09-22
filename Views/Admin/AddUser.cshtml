@@ -1,0 +1,53 @@
+@{
+    ViewData["Title"] = "Add User";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="container mt-4">
+    <div class="card">
+        <h3 class="card-header bg-primary text-white">เพิ่มผู้ใช้งาน (Add User)</h3>
+        <div class="card-body">
+            
+            <form>
+                
+                <div class="mb-3">
+                    <label class="form-label">ชื่อ (First Name)</label>
+                    <input type="text" class="form-control" />
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">นามสกุล (Last Name)</label>
+                    <input type="text" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">อีเมล (Email)</label>
+                    <input type="email" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">เบอร์โทรศัพท์ (Phone)</label>
+                    <input type="text" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">รหัสผ่าน (Password)</label>
+                    <input type="password" class="form-control" />
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">บทบาท (Role)</label>
+                    <select class="form-select">
+                        <option>ผู้ใช้ทั่วไป (User)</option>
+                        <option>ผู้ดูแลระบบ (Admin)</option>
+                    </select>
+                </div>
+
+                <button type="button" class="btn btn-primary">บันทึก</button>
+                <a href="/Admin/UserList" class="btn btn-secondary">ยกเลิก</a>
+
+            </form>
+
+        </div>
+    </div>
+</div>
