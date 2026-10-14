@@ -1,0 +1,23 @@
+@model IEnumerable<waranon_csi402.Models.Labstudent>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>รหัส</th>
+            <th>Password</th>
+            <th>Name</th>
+            <th>Last Name</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var Labstudent in Model)
+        {
+            <tr>
+                <td>@Labstudent.StdId</td>
+                <td>@Labstudent.StdPassword</td>
+                <td>@Labstudent.StdName</td>
+                <td>@Labstudent.StdLastname</td>
+            </tr>
+        }
+    </tbody>
+</table>
