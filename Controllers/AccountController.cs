@@ -11,61 +11,56 @@ public class AccountController : Controller
         return View();
     }
 
-    // GET: /Account/Login
+
     [HttpGet]
     public IActionResult Login()
     {
         return View();
     }
 
-    // POST: /Account/Login
+
     [HttpPost]
-    [ValidateAntiForgeryToken]
-    public IActionResult Login(LoginViewModel model, string FirstName, string LastName, string PhoneNumber)
+    public IActionResult Login(LoginViewModel Data, string FirstName, string LastName, string PhoneNumber)
     {
         if (ModelState.IsValid)
         {
-            // ใช้ ViewBag ส่งค่าไปแสดงที่หน้า Index
-            ViewBag.LoginEmail = model.Email;
-            ViewBag.LoginPassword = model.Password; 
-            
-            // นำข้อมูลที่ซ่อนไว้จากหน้า Login ส่งต่อไปให้หน้า Index
+
+            ViewBag.LoginEmail = Data.Email;
+            ViewBag.LoginPassword = Data.Password;
+
+
             ViewBag.Name = FirstName + " " + LastName;
             ViewBag.PhoneNumber = PhoneNumber;
 
             return View("Index");
         }
-
-        // ถ้า Login ไม่สำเร็จ กลับไปหน้า Login พร้อมแสดง error
-        return View(model);
+        return View(Data);
     }
 
-    // GET: /Account/Register
+
     [HttpGet]
     public IActionResult Register()
     {
         return View();
     }
 
-    // POST: /Account/Register
+
     [HttpPost]
-    [ValidateAntiForgeryToken]
-    public IActionResult Register(RegisterViewModel model)
+    public IActionResult Register(RegisterViewModel Data)
     {
         if (ModelState.IsValid)
         {
-            // ส่งต่อข้อมูลทั้งหมดไปที่หน้า Login เพื่อไม่ให้ข้อมูลหาย
-            var loginModel = new LoginViewModel { Email = model.Email };
+            var loginModel = new LoginViewModel { Email = Data.Email };
             ViewBag.Message = "สมัครสมาชิกสำเร็จ กรุณาเข้าสู่ระบบ";
-            ViewBag.FirstName = model.FirstName;
-            ViewBag.LastName = model.LastName;
-            ViewBag.PhoneNumber = model.PhoneNumber;
-            
+            ViewBag.FirstName = Data.FirstName;
+            ViewBag.LastName = Data.LastName;
+            ViewBag.PhoneNumber = Data.PhoneNumber;
+
             return View("Login", loginModel);
         }
 
-       
-        return View(model);
+
+        return View(Data);
     }
 
 

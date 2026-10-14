@@ -14,7 +14,6 @@
 
         <div class="card-body p-0">
             <form asp-controller="Account" asp-action="Login" method="post">
-                <!-- ซ่อนข้อมูลที่รับมาจากหน้า Register เพื่อส่งต่อไปตอนกดปุ่ม Login -->
                 <input type="hidden" name="FirstName" value="@ViewBag.FirstName" />
                 <input type="hidden" name="LastName" value="@ViewBag.LastName" />
                 <input type="hidden" name="PhoneNumber" value="@ViewBag.PhoneNumber" />

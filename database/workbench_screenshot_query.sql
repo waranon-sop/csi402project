@@ -1,0 +1,16 @@
+﻿USE CSI402DB;
+SHOW TABLES;
+DESCRIBE Labstudent;
+DESCRIBE Users;
+DESCRIBE Addresses;
+DESCRIBE Categories;
+DESCRIBE Products;
+DESCRIBE ProductVariants;
+DESCRIBE Promotions;
+DESCRIBE Coupons;
+DESCRIBE Orders;
+DESCRIBE OrderItems;
+DESCRIBE CartItems;
+DESCRIBE Wishlists;
+DESCRIBE Reviews;
+DESCRIBE Notifications;

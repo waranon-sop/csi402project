@@ -1,0 +1,203 @@
+﻿<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Assessment 8 Database Design</title>
+<style>
+  body { font-family: "TH Sarabun New", Arial, sans-serif; font-size: 15px; color: #000; background:#fff; padding: 50px 70px; }
+  h2 { font-size: 18px; font-weight: bold; margin-bottom: 14px; }
+  .tname { font-size: 16px; font-weight: bold; margin: 24px 0 8px 0; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+  th { border: 1px solid #000; padding: 6px 12px; background: #fff; font-weight: bold; text-align: center; }
+  td { border: 1px solid #000; padding: 5px 12px; min-height: 22px; height: 24px; }
+  .pic { border: 1px solid #000; width: 100%; text-align: center; padding: 50px 0; font-weight: bold; margin-bottom: 30px; }
+</style>
+</head>
+<body>
+<h2>Assessment 8 Database Design</h2>
+
+<div class="tname">1. Table: Labstudent</div>
+<table>
+<tr><th>Field Name</th><th>Data type</th><th>Description</th></tr>
+<tr><td>StdId</td><td>VARCHAR(10)</td><td>PRIMARY KEY รหัสนักศึกษา</td></tr>
+<tr><td>StdPassword</td><td>VARCHAR(30)</td><td>รหัสผ่าน</td></tr>
+<tr><td>StdName</td><td>VARCHAR(50)</td><td>ชื่อนักศึกษา</td></tr>
+<tr><td>StdLastname</td><td>VARCHAR(100)</td><td>นามสกุลนักศึกษา</td></tr>
+</table>
+<div class="pic">Picture</div>
+
+<div class="tname">2. Table: Users</div>
+<table>
+<tr><th>Field Name</th><th>Data type</th><th>Description</th></tr>
+<tr><td>UserID</td><td>INT (AUTO_INCREMENT)</td><td>PRIMARY KEY รหัสผู้ใช้งาน</td></tr>
+<tr><td>FirstName</td><td>VARCHAR(50)</td><td>ชื่อ</td></tr>
+<tr><td>LastName</td><td>VARCHAR(50)</td><td>นามสกุล</td></tr>
+<tr><td>Email</td><td>VARCHAR(100)</td><td>อีเมล (UNIQUE)</td></tr>
+<tr><td>PhoneNumber</td><td>VARCHAR(20)</td><td>เบอร์โทรศัพท์</td></tr>
+<tr><td>Password</td><td>VARCHAR(255)</td><td>รหัสผ่าน (hashed)</td></tr>
+<tr><td>Role</td><td>ENUM</td><td>Customer / Staff / Accounting / Admin</td></tr>
+<tr><td>IsActive</td><td>TINYINT(1)</td><td>สถานะ: 1=ใช้งาน, 0=ระงับ</td></tr>
+<tr><td>CreatedAt</td><td>DATETIME</td><td>วันที่สร้างบัญชี</td></tr>
+</table>
+<div class="pic">Picture</div>
+
+<div class="tname">3. Table: Addresses</div>
+<table>
+<tr><th>Field Name</th><th>Data type</th><th>Description</th></tr>
+<tr><td>AddressID</td><td>INT (AUTO_INCREMENT)</td><td>PRIMARY KEY รหัสที่อยู่</td></tr>
+<tr><td>UserID</td><td>INT</td><td>FOREIGN KEY &#8594; Users.UserID</td></tr>
+<tr><td>ReceiverName</td><td>VARCHAR(100)</td><td>ชื่อผู้รับ</td></tr>
+<tr><td>Phone</td><td>VARCHAR(20)</td><td>เบอร์โทรผู้รับ</td></tr>
+<tr><td>AddressLine</td><td>VARCHAR(255)</td><td>บ้านเลขที่ / ถนน / ซอย</td></tr>
+<tr><td>District</td><td>VARCHAR(100)</td><td>เขต / อำเภอ</td></tr>
+<tr><td>Province</td><td>VARCHAR(100)</td><td>จังหวัด</td></tr>
+<tr><td>PostalCode</td><td>VARCHAR(10)</td><td>รหัสไปรษณีย์</td></tr>
+<tr><td>IsDefault</td><td>TINYINT(1)</td><td>ที่อยู่เริ่มต้น: 1=ใช่, 0=ไม่ใช่</td></tr>
+</table>
+<div class="pic">Picture</div>
+
+<div class="tname">4. Table: Categories</div>
+<table>
+<tr><th>Field Name</th><th>Data type</th><th>Description</th></tr>
+<tr><td>CategoryID</td><td>INT (AUTO_INCREMENT)</td><td>PRIMARY KEY รหัสหมวดหมู่</td></tr>
+<tr><td>CategoryName</td><td>VARCHAR(100)</td><td>ชื่อหมวดหมู่สินค้า</td></tr>
+<tr><td>Description</td><td>TEXT</td><td>รายละเอียดหมวดหมู่</td></tr>
+</table>
+<div class="pic">Picture</div>
+
+<div class="tname">5. Table: Products</div>
+<table>
+<tr><th>Field Name</th><th>Data type</th><th>Description</th></tr>
+<tr><td>ProductID</td><td>INT (AUTO_INCREMENT)</td><td>PRIMARY KEY รหัสสินค้า</td></tr>
+<tr><td>CategoryID</td><td>INT</td><td>FOREIGN KEY &#8594; Categories.CategoryID</td></tr>
+<tr><td>ProductName</td><td>VARCHAR(200)</td><td>ชื่อสินค้า</td></tr>
+<tr><td>Description</td><td>TEXT</td><td>รายละเอียดสินค้า</td></tr>
+<tr><td>BasePrice</td><td>DECIMAL(10,2)</td><td>ราคาเริ่มต้น (บาท)</td></tr>
+<tr><td>ImageURL</td><td>VARCHAR(500)</td><td>URL รูปภาพสินค้า</td></tr>
+<tr><td>IsActive</td><td>TINYINT(1)</td><td>สถานะ: 1=เปิดขาย</td></tr>
+<tr><td>CreatedAt</td><td>DATETIME</td><td>วันที่เพิ่มสินค้า</td></tr>
+</table>
+<div class="pic">Picture</div>
+
+<div class="tname">6. Table: ProductVariants (SKU)</div>
+<table>
+<tr><th>Field Name</th><th>Data type</th><th>Description</th></tr>
+<tr><td>VariantID</td><td>INT (AUTO_INCREMENT)</td><td>PRIMARY KEY รหัส SKU</td></tr>
+<tr><td>ProductID</td><td>INT</td><td>FOREIGN KEY &#8594; Products.ProductID</td></tr>
+<tr><td>Color</td><td>VARCHAR(50)</td><td>สีของสินค้า</td></tr>
+<tr><td>Size</td><td>VARCHAR(20)</td><td>ไซส์ (XS/S/M/L/XL/XXL)</td></tr>
+<tr><td>Stock</td><td>INT</td><td>จำนวนสต็อกคงเหลือ</td></tr>
+<tr><td>ExtraPrice</td><td>DECIMAL(10,2)</td><td>ราคาเพิ่มเติมจาก BasePrice</td></tr>
+<tr><td>ImageURL</td><td>VARCHAR(500)</td><td>URL รูปภาพ SKU</td></tr>
+</table>
+<div class="pic">Picture</div>
+
+<div class="tname">7. Table: Promotions</div>
+<table>
+<tr><th>Field Name</th><th>Data type</th><th>Description</th></tr>
+<tr><td>PromotionID</td><td>INT (AUTO_INCREMENT)</td><td>PRIMARY KEY รหัสโปรโมชั่น</td></tr>
+<tr><td>PromotionName</td><td>VARCHAR(200)</td><td>ชื่อโปรโมชั่น</td></tr>
+<tr><td>DiscountType</td><td>ENUM</td><td>Percent / Fixed</td></tr>
+<tr><td>DiscountValue</td><td>DECIMAL(10,2)</td><td>ค่าส่วนลด</td></tr>
+<tr><td>MinOrderAmt</td><td>DECIMAL(10,2)</td><td>ยอดสั่งซื้อขั้นต่ำ (บาท)</td></tr>
+<tr><td>CategoryID</td><td>INT</td><td>FOREIGN KEY &#8594; Categories.CategoryID</td></tr>
+<tr><td>StartDate</td><td>DATETIME</td><td>วันเริ่มโปรโมชั่น</td></tr>
+<tr><td>EndDate</td><td>DATETIME</td><td>วันสิ้นสุดโปรโมชั่น</td></tr>
+<tr><td>IsActive</td><td>TINYINT(1)</td><td>สถานะ: 1=เปิดใช้งาน</td></tr>
+</table>
+<div class="pic">Picture</div>
+
+<div class="tname">8. Table: Coupons</div>
+<table>
+<tr><th>Field Name</th><th>Data type</th><th>Description</th></tr>
+<tr><td>CouponID</td><td>INT (AUTO_INCREMENT)</td><td>PRIMARY KEY รหัสคูปอง</td></tr>
+<tr><td>CouponCode</td><td>VARCHAR(50)</td><td>โค้ดส่วนลด (UNIQUE)</td></tr>
+<tr><td>DiscountType</td><td>ENUM</td><td>Percent / Fixed</td></tr>
+<tr><td>DiscountValue</td><td>DECIMAL(10,2)</td><td>ค่าส่วนลด</td></tr>
+<tr><td>MinOrderAmt</td><td>DECIMAL(10,2)</td><td>ยอดสั่งซื้อขั้นต่ำ</td></tr>
+<tr><td>UsageLimit</td><td>INT</td><td>จำนวนครั้งสูงสุดที่ใช้ได้</td></tr>
+<tr><td>UsedCount</td><td>INT</td><td>จำนวนครั้งที่ใช้ไปแล้ว</td></tr>
+<tr><td>ExpiresAt</td><td>DATETIME</td><td>วันหมดอายุ</td></tr>
+<tr><td>IsActive</td><td>TINYINT(1)</td><td>สถานะ: 1=ใช้งานได้</td></tr>
+</table>
+<div class="pic">Picture</div>
+
+<div class="tname">9. Table: Orders</div>
+<table>
+<tr><th>Field Name</th><th>Data type</th><th>Description</th></tr>
+<tr><td>OrderID</td><td>INT (AUTO_INCREMENT)</td><td>PRIMARY KEY รหัสคำสั่งซื้อ</td></tr>
+<tr><td>UserID</td><td>INT</td><td>FOREIGN KEY &#8594; Users.UserID</td></tr>
+<tr><td>AddressID</td><td>INT</td><td>FOREIGN KEY &#8594; Addresses.AddressID</td></tr>
+<tr><td>Subtotal</td><td>DECIMAL(10,2)</td><td>ยอดรวมราคาสินค้า</td></tr>
+<tr><td>ShippingFee</td><td>DECIMAL(10,2)</td><td>ค่าจัดส่ง</td></tr>
+<tr><td>DiscountAmt</td><td>DECIMAL(10,2)</td><td>ยอดส่วนลด</td></tr>
+<tr><td>TotalAmount</td><td>DECIMAL(10,2)</td><td>ยอดรวมสุทธิ</td></tr>
+<tr><td>PromotionID</td><td>INT</td><td>FOREIGN KEY &#8594; Promotions.PromotionID</td></tr>
+<tr><td>CouponID</td><td>INT</td><td>FOREIGN KEY &#8594; Coupons.CouponID</td></tr>
+<tr><td>Status</td><td>ENUM</td><td>Pending / Verifying / Paid / Processing / Shipped / Completed / Cancelled / Refunded</td></tr>
+<tr><td>PaymentMethod</td><td>ENUM</td><td>Bank Transfer / Credit Card / PromptPay</td></tr>
+<tr><td>TrackingNumber</td><td>VARCHAR(100)</td><td>เลขพัสดุจัดส่ง</td></tr>
+<tr><td>SlipImageURL</td><td>VARCHAR(500)</td><td>URL รูปสลิปโอนเงิน</td></tr>
+<tr><td>OrderedAt</td><td>DATETIME</td><td>วันเวลาสั่งซื้อ</td></tr>
+<tr><td>UpdatedAt</td><td>DATETIME</td><td>วันเวลาอัปเดตล่าสุด</td></tr>
+</table>
+<div class="pic">Picture</div>
+
+<div class="tname">10. Table: OrderItems</div>
+<table>
+<tr><th>Field Name</th><th>Data type</th><th>Description</th></tr>
+<tr><td>OrderItemID</td><td>INT (AUTO_INCREMENT)</td><td>PRIMARY KEY รหัสรายการสินค้า</td></tr>
+<tr><td>OrderID</td><td>INT</td><td>FOREIGN KEY &#8594; Orders.OrderID</td></tr>
+<tr><td>VariantID</td><td>INT</td><td>FOREIGN KEY &#8594; ProductVariants.VariantID</td></tr>
+<tr><td>Quantity</td><td>INT</td><td>จำนวนที่สั่งซื้อ</td></tr>
+<tr><td>UnitPrice</td><td>DECIMAL(10,2)</td><td>ราคาต่อชิ้น ณ เวลาสั่งซื้อ</td></tr>
+</table>
+<div class="pic">Picture</div>
+
+<div class="tname">11. Table: CartItems</div>
+<table>
+<tr><th>Field Name</th><th>Data type</th><th>Description</th></tr>
+<tr><td>CartItemID</td><td>INT (AUTO_INCREMENT)</td><td>PRIMARY KEY รหัสรายการตะกร้า</td></tr>
+<tr><td>UserID</td><td>INT</td><td>FOREIGN KEY &#8594; Users.UserID</td></tr>
+<tr><td>VariantID</td><td>INT</td><td>FOREIGN KEY &#8594; ProductVariants.VariantID</td></tr>
+<tr><td>Quantity</td><td>INT</td><td>จำนวนสินค้าในตะกร้า</td></tr>
+<tr><td>AddedAt</td><td>DATETIME</td><td>วันเวลาที่เพิ่มลงตะกร้า</td></tr>
+</table>
+<div class="pic">Picture</div>
+
+<div class="tname">12. Table: Wishlists</div>
+<table>
+<tr><th>Field Name</th><th>Data type</th><th>Description</th></tr>
+<tr><td>WishlistID</td><td>INT (AUTO_INCREMENT)</td><td>PRIMARY KEY รหัส Wishlist</td></tr>
+<tr><td>UserID</td><td>INT</td><td>FOREIGN KEY &#8594; Users.UserID</td></tr>
+<tr><td>ProductID</td><td>INT</td><td>FOREIGN KEY &#8594; Products.ProductID</td></tr>
+<tr><td>AddedAt</td><td>DATETIME</td><td>วันเวลาที่เพิ่มรายการโปรด</td></tr>
+</table>
+<div class="pic">Picture</div>
+
+<div class="tname">13. Table: Reviews</div>
+<table>
+<tr><th>Field Name</th><th>Data type</th><th>Description</th></tr>
+<tr><td>ReviewID</td><td>INT (AUTO_INCREMENT)</td><td>PRIMARY KEY รหัสรีวิว</td></tr>
+<tr><td>ProductID</td><td>INT</td><td>FOREIGN KEY &#8594; Products.ProductID</td></tr>
+<tr><td>UserID</td><td>INT</td><td>FOREIGN KEY &#8594; Users.UserID</td></tr>
+<tr><td>Rating</td><td>TINYINT</td><td>คะแนน 1-5 ดาว</td></tr>
+<tr><td>Comment</td><td>TEXT</td><td>ข้อความรีวิว</td></tr>
+<tr><td>CreatedAt</td><td>DATETIME</td><td>วันเวลาที่รีวิว</td></tr>
+</table>
+<div class="pic">Picture</div>
+
+<div class="tname">14. Table: Notifications</div>
+<table>
+<tr><th>Field Name</th><th>Data type</th><th>Description</th></tr>
+<tr><td>NotificationID</td><td>INT (AUTO_INCREMENT)</td><td>PRIMARY KEY รหัสการแจ้งเตือน</td></tr>
+<tr><td>UserID</td><td>INT</td><td>FOREIGN KEY &#8594; Users.UserID</td></tr>
+<tr><td>Title</td><td>VARCHAR(200)</td><td>หัวข้อการแจ้งเตือน</td></tr>
+<tr><td>Message</td><td>TEXT</td><td>เนื้อหาการแจ้งเตือน</td></tr>
+<tr><td>IsRead</td><td>TINYINT(1)</td><td>สถานะ: 1=อ่านแล้ว, 0=ยังไม่อ่าน</td></tr>
+<tr><td>CreatedAt</td><td>DATETIME</td><td>วันเวลาที่แจ้งเตือน</td></tr>
+</table>
+<div class="pic">Picture</div>
+
+</body>
+</html>
