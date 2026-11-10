@@ -3,10 +3,12 @@
 <table class="table table-bordered">
     <thead>
         <tr>
-            <th>รหัส</th>
+            <th>ID</th>
             <th>Password</th>
             <th>Name</th>
             <th>Last Name</th>
+            <th></th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
@@ -17,7 +19,10 @@
                 <td>@Labstudent.StdPassword</td>
                 <td>@Labstudent.StdName</td>
                 <td>@Labstudent.StdLastname</td>
+                <td><a asp-action="Lab10" asp-controller="Home" asp-route-StdId="@Labstudent.StdId">Edit</a></td>
+                <td><a asp-action="Lab10_1" asp-controller="Home" asp-route-StdId="@Labstudent.StdId">Delete</a></td>
             </tr>
         }
     </tbody>
+    <p class="text-danger">@ViewBag.Status</p>
 </table>

@@ -14,9 +14,6 @@
 
         <div class="card-body p-0">
             <form asp-controller="Account" asp-action="Login" method="post">
-                <input type="hidden" name="FirstName" value="@ViewBag.FirstName" />
-                <input type="hidden" name="LastName" value="@ViewBag.LastName" />
-                <input type="hidden" name="PhoneNumber" value="@ViewBag.PhoneNumber" />
 
                 <div class="mb-3">
                     <label asp-for="Email" class="form-label fw-semibold text-secondary small">อีเมล </label>
@@ -33,6 +30,12 @@
                     เข้าสู่ระบบ
                 </button>
             </form>
+
+            @if (ViewBag.Message != null)
+            {
+                <p class="text-success mt-2">@ViewBag.Message</p>
+            }
+            <p class="text-danger">@ViewBag.Status</p>
 
             <div class="text-center">
                 <span class="text-muted small">ยังไม่มีบัญชีใช่หรือไม่?</span>

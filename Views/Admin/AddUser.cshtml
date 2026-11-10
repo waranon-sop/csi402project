@@ -1,3 +1,5 @@
+@model waranon_csi402.ViewModels.RegisterViewModel
+
 @{
     ViewData["Title"] = "Add User";
     Layout = "_LayoutAdmin";
@@ -8,45 +10,48 @@
         <h3 class="card-header bg-primary text-white">เพิ่มผู้ใช้งาน (Add User)</h3>
         <div class="card-body">
             
-            <form>
+            <form asp-action="AddUser" asp-controller="Admin" method="post">
                 
                 <div class="mb-3">
                     <label class="form-label">ชื่อ (First Name)</label>
-                    <input type="text" class="form-control" />
+                    <input type="text" name="FirstName" class="form-control" />
                 </div>
                 
                 <div class="mb-3">
                     <label class="form-label">นามสกุล (Last Name)</label>
-                    <input type="text" class="form-control" />
+                    <input type="text" name="LastName" class="form-control" />
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">อีเมล (Email)</label>
-                    <input type="email" class="form-control" />
+                    <input type="email" name="Email" class="form-control" />
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">เบอร์โทรศัพท์ (Phone)</label>
-                    <input type="text" class="form-control" />
+                    <input type="text" name="PhoneNumber" class="form-control" />
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">รหัสผ่าน (Password)</label>
-                    <input type="password" class="form-control" />
+                    <input type="password" name="Password" class="form-control" />
                 </div>
                 
                 <div class="mb-3">
                     <label class="form-label">บทบาท (Role)</label>
-                    <select class="form-select">
-                        <option>ผู้ใช้ทั่วไป (User)</option>
-                        <option>ผู้ดูแลระบบ (Admin)</option>
+                    <select name="Role" class="form-select">
+                        <option value="Customer">ผู้ใช้ทั่วไป (Customer)</option>
+                        <option value="Admin">ผู้ดูแลระบบ (Admin)</option>
+                        <option value="Staff">เจ้าหน้าที่ (Staff)</option>
                     </select>
                 </div>
 
-                <button type="button" class="btn btn-primary">บันทึก</button>
-                <a href="/Admin/UserList" class="btn btn-secondary">ยกเลิก</a>
+                <button type="submit" class="btn btn-primary">บันทึก</button>
+                <a asp-action="UserList" asp-controller="Admin" class="btn btn-secondary">ยกเลิก</a>
 
             </form>
+
+            <p class="text-danger">@ViewBag.Status</p>
 
         </div>
     </div>

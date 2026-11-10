@@ -29,7 +29,7 @@ public class HomeController : Controller
         {
             if (data.StdPassword != null)
             {
-               var checkID = (from a in _db.Labstudents where a.StdId == data.StdId select a).FirstOrDefault();
+                var checkID = (from a in _db.Labstudents where a.StdId == data.StdId select a).FirstOrDefault();
                 if (checkID == null)
                 {
                     Labstudent s = new();
@@ -55,15 +55,50 @@ public class HomeController : Controller
         }
         return View(data);
     }
-    public IActionResult Lab9_1()
+    public IActionResult Lab9_1(string? status)
     {
-        // read
+
         var user = (from l in _db.Labstudents select l).ToList();
-        // select * from Labstudents
+        if (status != null)
+        {
+            ViewBag.Status = status;
+        }
         return View(user);
     }
 
+    public IActionResult Lab10(string? StdId)
+    {
+        var User = (from s in _db.Labstudents where s.StdId == StdId select s).FirstOrDefault();
+        return View(User);
+    }
 
+
+    [HttpPost]
+
+    public IActionResult Lab10(Labstudent data)
+    {
+        var User = (from s in _db.Labstudents where s.StdId == data.StdId select s).FirstOrDefault();
+        User.StdPassword = data.StdPassword;
+        User.StdName = data.StdName;
+        User.StdLastname = data.StdLastname;
+        _db.SaveChanges();
+        return View(data);
+    }
+    
+    public IActionResult Lab10_1(string? StdId)
+    {
+        var check = (from s in _db.Labstudents where s.StdId == StdId select s).FirstOrDefault();
+        if (check != null)
+        {
+            _db.Remove(check);
+            _db.SaveChanges();
+            return RedirectToAction("Lab9_1", "Home", new { status = "ลบสำเร็จ" });
+        }
+        else
+        {
+            return RedirectToAction("Lab9_1", "Home", new { status = "ลบไม่สำเร็จ" });
+        }
+    }
     public IActionResult Index()
     {
         return View();
@@ -73,5 +108,6 @@ public class HomeController : Controller
     {
         return View();
     }
+
 }
 

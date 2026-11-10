@@ -1,0 +1,65 @@
+@model waranon_csi402.Models.User
+
+@{
+    ViewData["Title"] = "Edit User";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="container mt-4">
+    <div class="card">
+        <h3 class="card-header bg-warning text-dark">แก้ไขข้อมูลผู้ใช้งาน (Edit User)</h3>
+        <div class="card-body">
+            
+            <form asp-action="EditUser" asp-controller="Admin" method="post">
+                @Html.AntiForgeryToken()
+                
+                <div class="mb-3">
+                    <label class="form-label">User ID</label>
+                    <input type="text" asp-for="UserId" class="form-control" readonly />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">ชื่อ (First Name)</label>
+                    <input type="text" asp-for="FirstName" class="form-control" required />
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">นามสกุล (Last Name)</label>
+                    <input type="text" asp-for="LastName" class="form-control" required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">อีเมล (Email)</label>
+                    <input type="email" asp-for="Email" class="form-control" required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">เบอร์โทรศัพท์ (Phone)</label>
+                    <input type="text" asp-for="PhoneNumber" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">รหัสผ่าน (Password)</label>
+                    <input type="text" asp-for="Password" class="form-control"
+                           placeholder="ระบุรหัสผ่านใหม่หากต้องการเปลี่ยน" />
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">บทบาท (Role)</label>
+                    <select asp-for="Role" class="form-select">
+                        <option value="Customer">Customer (ผู้ใช้ทั่วไป)</option>
+                        <option value="Admin">Admin (ผู้ดูแลระบบ)</option>
+                        <option value="Staff">Staff (เจ้าหน้าที่)</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-warning">บันทึกการแก้ไข</button>
+                <a asp-action="UserList" asp-controller="Admin" class="btn btn-secondary">ยกเลิก</a>
+
+            </form>
+
+            <p class="text-danger mt-2">@ViewBag.Status</p>
+
+        </div>
+    </div>
+</div>
