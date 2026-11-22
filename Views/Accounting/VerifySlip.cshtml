@@ -1,0 +1,360 @@
+@model waranon_csi402.Models.Order
+@{
+    ViewData["Title"] = $"ตรวจสอบสลิปคำสั่งซื้อ #{Model.OrderId}";
+    Layout = "_LayoutAccounting";
+
+    string GetBadgeColor(string status) => status switch
+    {
+        "Verifying Slip"  => "warning text-dark",
+        "Paid"            => "success",
+        "Invalid Slip"    => "danger",
+        "Pending Payment" => "secondary",
+        "Processing"      => "info text-dark",
+        "Shipped"         => "primary",
+        "Completed"       => "dark",
+        _                 => "light text-dark"
+    };
+}
+
+<div class="container-fluid p-0">
+    <!-- Breadcrumb & Header -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-2">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb small mb-1">
+                    <li class="breadcrumb-item"><a asp-action="Index" class="text-decoration-none">คิวงานฝ่ายบัญชี</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">ตรวจสอบสลิป #@Model.OrderId</li>
+                </ol>
+            </nav>
+            <div class="d-flex align-items-center flex-wrap gap-2">
+                <h3 class="fw-bold mb-0 text-dark">
+                    ตรวจสอบสลิปคำสั่งซื้อ <span class="text-primary">#@Model.OrderId</span>
+                </h3>
+                <span class="badge bg-@GetBadgeColor(Model.Status) fs-6 rounded-pill px-3 py-2">
+                    @Model.Status
+                </span>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <a asp-action="Index" class="btn btn-outline-secondary rounded-pill btn-sm px-3 shadow-sm">
+                <i class="fa-solid fa-arrow-left me-1"></i>กลับไปรายการทั้งหมด
+            </a>
+        </div>
+    </div>
+
+    @if (ViewBag.Status != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm border-0 mb-4 d-flex align-items-center" role="alert">
+            <div class="bg-success text-white rounded-circle p-2 me-3 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <div class="flex-grow-1">
+                <span class="fw-medium">@ViewBag.Status</span>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- คอลัมน์ซ้าย: รูปภาพสลิปหลักฐานการโอนเงิน (Inspector) -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 rounded-4 overflow-hidden bg-white mb-4 sticky-top" style="top: 20px; z-index: 10;">
+                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="fa-solid fa-receipt text-warning me-2"></i>ภาพสลิปหลักฐานการโอน
+                    </h5>
+                    @if (!string.IsNullOrEmpty(Model.SlipImageUrl))
+                    {
+                        <a href="@Model.SlipImageUrl" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm">
+                            <i class="fa-solid fa-up-right-and-down-left-from-center me-1"></i>ดูภาพขนาดเต็ม
+                        </a>
+                    }
+                </div>
+                <div class="card-body p-4 text-center bg-light">
+                    @if (!string.IsNullOrEmpty(Model.SlipImageUrl))
+                    {
+                        <div class="border rounded-4 p-2 bg-white d-inline-block shadow-sm overflow-hidden" style="max-width: 100%;">
+                            <a href="@Model.SlipImageUrl" target="_blank" title="คลิกเพื่อเปิดดูภาพขนาดเต็ม">
+                                <img src="@Model.SlipImageUrl" alt="Payment Slip" class="img-fluid rounded-3" 
+                                     style="max-height: 520px; object-fit: contain; cursor: zoom-in;" />
+                            </a>
+                        </div>
+                        <div class="mt-3 small text-muted">
+                            <i class="fa-solid fa-circle-info me-1 text-primary"></i>คลิกที่รูปภาพเพื่อเปิดภาพต้นฉบับความละเอียดสูงในแท็บใหม่
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="py-5 text-muted">
+                            <i class="fa-solid fa-image-slash fa-4x opacity-50 mb-3"></i>
+                            <h5 class="fw-bold">ยังไม่มีการแนบสลิป</h5>
+                            <p class="small mb-0">ลูกค้ารายนี้ยังไม่ได้ทำการอัปโหลดสลิปหลักฐานการโอนเงิน</p>
+                        </div>
+                    }
+                </div>
+
+                <!-- ข้อมูลบัญชีของร้านที่ต้องตรวจสอบยอด -->
+                <div class="card-footer bg-white p-3 border-top">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-success text-white rounded-3 p-2 me-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                <i class="fa-solid fa-building-columns"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block" style="font-size: 0.75rem;">บัญชีรับโอนของร้าน</small>
+                                <span class="fw-bold text-dark small">ธนาคารกสิกรไทย 012-3-45678-9</span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted d-block" style="font-size: 0.75rem;">ชื่อบัญชี</small>
+                            <span class="fw-semibold text-dark small">บจก. เสื้อผ้า ดอทคอม</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- เช็กลิสต์ความถูกต้องสำหรับเจ้าหน้าที่บัญชี -->
+                <div class="p-3 bg-light border-top">
+                    <small class="fw-bold text-secondary d-block mb-2">
+                        <i class="fa-solid fa-list-check me-1 text-info"></i>เกณฑ์การตรวจสอบสลิป:
+                    </small>
+                    <div class="d-flex flex-column gap-1 small text-muted">
+                        <div><i class="fa-regular fa-circle-check text-success me-1"></i> ตรวจสอบว่ายอดโอนตรงกับยอดคำสั่งซื้อ <strong>฿@Model.TotalAmount.ToString("N0")</strong></div>
+                        <div><i class="fa-regular fa-circle-check text-success me-1"></i> ตรวจสอบบัญชีปลายทางและชื่อบัญชีถูกต้อง</div>
+                        <div><i class="fa-regular fa-circle-check text-success me-1"></i> ตรวจสอบวันที่และเวลาโอนว่าสัมพันธ์กับเวลาสั่งซื้อ</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- คอลัมน์ขวา: ข้อมูลคำสั่งซื้อและการตัดสินใจ -->
+        <div class="col-lg-6">
+            <!-- 1. กล่องยอดเงินที่ต้องตรวจสอบ (Target Amount) -->
+            <div class="card shadow-sm border-0 rounded-4 p-4 text-white mb-4" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-white-50 small">ยอดเงินโอนที่ต้องตรวจสอบให้ตรงกับสลิป:</span>
+                    <span class="badge bg-info text-dark fw-bold px-3 py-1">@Model.PaymentMethod</span>
+                </div>
+                <div class="display-6 fw-bold mb-1 text-white">
+                    ฿@Model.TotalAmount.ToString("N0")
+                </div>
+                <div class="d-flex align-items-center justify-content-between text-white-50 small mt-2 pt-2 border-top border-secondary">
+                    <span><i class="fa-regular fa-clock me-1"></i>สั่งซื้อเมื่อ: @Model.OrderedAt.ToString("dd MMMM yyyy HH:mm น.")</span>
+                    <span>สถานะ: <strong class="text-warning">@Model.Status</strong></span>
+                </div>
+            </div>
+
+            <!-- 2. แผงควบคุมการอนุมัติ / ปฏิเสธ (Action Panel) -->
+            <div class="card shadow-sm border-0 rounded-4 p-4 bg-white mb-4">
+                <h5 class="fw-bold mb-3 text-dark border-bottom pb-2">
+                    <i class="fa-solid fa-gavel text-info me-2"></i>การตัดสินใจของฝ่ายบัญชี
+                </h5>
+
+                @if (Model.Status == "Verifying Slip")
+                {
+                    <div class="d-flex flex-column gap-3">
+                        <!-- ปุ่มอนุมัติ (Approve) -->
+                        <form method="post" asp-action="ApproveSlip" 
+                              onsubmit="return confirm('ยืนยันว่ายอดเงิน ฿@Model.TotalAmount.ToString("N0") ถูกต้องตามสลิป?\n\nเมื่ออนุมัติแล้ว คำสั่งซื้อจะถูกปรับเป็น Paid และส่งไปยังคลังสินค้าเพื่อแพ็คและจัดส่งทันที!');">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="orderId" value="@Model.OrderId" />
+                            <button type="submit" class="btn btn-success btn-lg rounded-pill w-100 fw-bold shadow-sm py-3">
+                                <i class="fa-solid fa-circle-check me-2"></i>อนุมัติการชำระเงิน (ส่งต่อคลังสินค้า)
+                            </button>
+                        </form>
+
+                        <!-- ปุ่มปฏิเสธ (Reject) Trigger Modal -->
+                        <button class="btn btn-outline-danger rounded-pill w-100 fw-semibold py-2" type="button" 
+                                data-bs-toggle="modal" data-bs-target="#verifyRejectModal">
+                            <i class="fa-solid fa-circle-xmark me-2"></i>ปฏิเสธสลิป / แจ้งลูกค้าแนบใหม่
+                        </button>
+                    </div>
+                }
+                else if (Model.Status == "Paid" || Model.Status == "Processing" || Model.Status == "Shipped" || Model.Status == "Completed")
+                {
+                    <div class="alert alert-success d-flex align-items-center rounded-4 mb-3 p-3">
+                        <i class="fa-solid fa-circle-check fs-2 text-success me-3"></i>
+                        <div>
+                            <strong class="d-block text-success">คำสั่งซื้อนี้ได้รับการอนุมัติเรียบร้อยแล้ว</strong>
+                            <small class="text-muted">สถานะปัจจุบัน: <strong>@Model.Status</strong></small>
+                        </div>
+                    </div>
+
+                    <!-- คืนเงิน / คืนสินค้า -->
+                    <form method="post" asp-action="RefundOrder" class="border rounded-4 p-3 bg-light"
+                          onsubmit="return confirm('ยืนยันคืนเงินคำสั่งซื้อ #@Model.OrderId ยอด ฿@Model.TotalAmount.ToString("N0")?\n\nสถานะจะเปลี่ยนเป็น Refunded และแก้ไขต่อไม่ได้');">
+                        <input type="hidden" name="orderId" value="@Model.OrderId" />
+                        <h6 class="fw-bold text-danger small mb-2"><i class="fa-solid fa-rotate-left me-1"></i>คืนเงิน / คืนสินค้า</h6>
+                        <textarea name="reason" rows="2" class="form-control form-control-sm mb-2" placeholder="เหตุผล เช่น ลูกค้าได้รับสินค้าชำรุด" required></textarea>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="restock" value="true" id="restockCheck" />
+                            <label class="form-check-label small" for="restockCheck">ได้รับสินค้าคืนและตรวจสภาพแล้ว (คืนสต็อกเข้าคลัง)</label>
+                        </div>
+                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill w-100 fw-semibold">ยืนยันคืนเงิน</button>
+                    </form>
+                }
+                else
+                {
+                    <div class="alert alert-secondary d-flex align-items-center rounded-4 mb-0 p-3">
+                        <i class="fa-solid fa-circle-info fs-2 me-3"></i>
+                        <div>
+                            <strong class="d-block">ยังไม่มีสลิปให้ตรวจ หรือออเดอร์สิ้นสุดแล้ว</strong>
+                            <small class="text-muted">สถานะปัจจุบัน: <strong>@Model.Status</strong></small>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- 3. ข้อมูลลูกค้า & ที่อยู่จัดส่ง -->
+            <div class="card shadow-sm border-0 rounded-4 p-4 bg-white mb-4">
+                <h6 class="fw-bold mb-3 border-bottom pb-2 text-dark">
+                    <i class="fa-solid fa-user text-primary me-2"></i>ข้อมูลลูกค้า & ที่อยู่จัดส่ง
+                </h6>
+                <div class="row g-2 small">
+                    <div class="col-sm-6">
+                        <span class="text-muted d-block">ชื่อผู้สั่งซื้อ / ผู้รับ:</span>
+                        <div class="fw-bold text-dark fs-6">@(Model.Address?.ReceiverName ?? $"{Model.User?.FirstName} {Model.User?.LastName}")</div>
+                        <small class="text-muted">@(Model.User?.Email ?? "-")</small>
+                    </div>
+                    <div class="col-sm-6">
+                        <span class="text-muted d-block">เบอร์โทรศัพท์:</span>
+                        <div class="fw-bold text-dark fs-6">
+                            <i class="fa-solid fa-phone me-1 text-primary"></i>@(Model.Address?.Phone ?? Model.User?.PhoneNumber ?? "-")
+                        </div>
+                    </div>
+                    <div class="col-12 mt-2 pt-2 border-top">
+                        <span class="text-muted d-block">ที่อยู่จัดส่งสินค้า:</span>
+                        <div class="text-dark">
+                            @(Model.Address != null 
+                                ? $"{Model.Address.AddressLine}, {Model.Address.District}, {Model.Address.Province} {Model.Address.PostalCode}" 
+                                : "ไม่ได้ระบุที่อยู่จัดส่ง")
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. รายการสินค้าในออเดอร์ -->
+            <div class="card shadow-sm border-0 rounded-4 overflow-hidden bg-white mb-4">
+                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                    <h6 class="fw-bold mb-0 text-dark">
+                        <i class="fa-solid fa-cart-shopping text-secondary me-2"></i>รายการสินค้า (@Model.Orderitems.Count รายการ)
+                    </h6>
+                    <span class="badge bg-light text-dark border">Order items</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead class="table-light small">
+                                <tr>
+                                    <th class="ps-3 py-2">สินค้า</th>
+                                    <th class="text-center py-2">ราคา</th>
+                                    <th class="text-center py-2">จำนวน</th>
+                                    <th class="pe-3 text-end py-2">รวม</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Orderitems)
+                                {
+                                    var lineTotal = item.UnitPrice * item.Quantity;
+                                    <tr>
+                                        <td class="ps-3 py-2">
+                                            <strong class="text-dark">@item.Variant?.Product?.ProductName</strong>
+                                            <small class="text-muted d-block">
+                                                สี: @item.Variant?.Color | ไซส์: @item.Variant?.Size
+                                            </small>
+                                        </td>
+                                        <td class="text-center small">฿@item.UnitPrice.ToString("N0")</td>
+                                        <td class="text-center small">@item.Quantity</td>
+                                        <td class="pe-3 text-end fw-bold text-dark small">฿@lineTotal.ToString("N0")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-light p-3 small">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">ราคารวมสินค้า (Subtotal):</span>
+                        <span class="fw-semibold">฿@Model.Subtotal.ToString("N0")</span>
+                    </div>
+                    @if (Model.DiscountAmt > 0)
+                    {
+                        <div class="d-flex justify-content-between mb-1 text-danger">
+                            <span>ส่วนลดโปรโมชั่น / คูปอง:</span>
+                            <span class="fw-bold">-฿@Model.DiscountAmt.ToString("N0")</span>
+                        </div>
+                    }
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">ค่าจัดส่ง:</span>
+                        <span>@(Model.ShippingFee == 0 ? "ฟรี (ส่งฟรี)" : $"฿{Model.ShippingFee:N0}")</span>
+                    </div>
+                    <hr class="my-2" />
+                    <div class="d-flex justify-content-between fw-bold fs-6">
+                        <span>ยอดสุทธิที่ต้องได้รับจริง:</span>
+                        <span class="text-primary fs-5">฿@Model.TotalAmount.ToString("N0")</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: ปฏิเสธสลิป พร้อมเลือกเหตุผล -->
+<div class="modal fade" id="verifyRejectModal" tabindex="-1" aria-labelledby="verifyRejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <form method="post" asp-action="RejectSlip">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="orderId" value="@Model.OrderId" />
+
+                <div class="modal-header border-bottom py-3 bg-danger bg-opacity-10">
+                    <h5 class="modal-title fw-bold text-danger" id="verifyRejectModalLabel">
+                        <i class="fa-solid fa-circle-exclamation me-2"></i>ปฏิเสธสลิปคำสั่งซื้อ #@Model.OrderId
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body p-4">
+                    <div class="alert alert-warning py-2 px-3 small rounded-3 mb-3">
+                        <i class="fa-solid fa-triangle-exclamation me-1"></i>ระบบจะปรับสถานะออเดอร์เป็น <strong>Invalid Slip</strong> และแจ้งให้ลูกค้าแนบสลิปใหม่
+                    </div>
+
+                    <label class="form-label fw-semibold small text-dark">เลือกเหตุผลที่พบบ่อย:</label>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="setVerifyRejectReason('ยอดเงินโอนไม่ตรงกับยอดคำสั่งซื้อ (ขาด/เกิน)')">
+                            ยอดเงินไม่ตรง
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="setVerifyRejectReason('ภาพสลิปไม่ชัดเจน / มัว ไม่สามารถตรวจสอบข้อมูลได้')">
+                            ภาพไม่ชัดเจน
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="setVerifyRejectReason('สลิปซ้ำ หรือมีการใช้งานกับคำสั่งซื้ออื่นแล้ว')">
+                            สลิปซ้ำ
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="setVerifyRejectReason('บัญชีปลายทางไม่ถูกต้อง ไม่ใช่บัญชีธนาคารของทางร้าน')">
+                            โอนผิดบัญชี
+                        </button>
+                    </div>
+
+                    <label for="verifyRejectReasonArea" class="form-label fw-semibold small text-dark">รายละเอียดเพิ่มเติม / ข้อความแจ้งลูกค้า:</label>
+                    <textarea name="reason" id="verifyRejectReasonArea" rows="3" class="form-control rounded-3" 
+                              placeholder="เช่น ยอดเงินโอนไม่ตรงกับยอดที่ต้องชำระ ฿@Model.TotalAmount.ToString("N0") โปรดแนบสลิปที่ถูกต้อง..." required></textarea>
+                </div>
+
+                <div class="modal-footer bg-white border-top">
+                    <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="submit" class="btn btn-danger btn-sm rounded-pill px-4 fw-semibold">
+                        <i class="fa-solid fa-ban me-1"></i>ยืนยันปฏิเสธสลิป
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function setVerifyRejectReason(text) {
+            document.getElementById('verifyRejectReasonArea').value = text;
+        }
+    </script>
+}

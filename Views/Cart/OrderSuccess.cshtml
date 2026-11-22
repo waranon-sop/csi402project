@@ -1,0 +1,138 @@
+@model waranon_csi402.Models.Order
+@{
+    Layout = "_Layout2";
+    ViewData["Title"] = "สั่งซื้อสินค้าสำเร็จ";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- หัวข้อสั่งซื้อสำเร็จ -->
+            <div class="card shadow-sm border-0 rounded-4 text-center p-4 mb-4">
+                <div class="mb-3">
+                    <span class="d-inline-flex align-items-center justify-content-center bg-success-subtle text-success rounded-circle" style="width: 75px; height: 75px;">
+                        <i class="fa-solid fa-check fs-1"></i>
+                    </span>
+                </div>
+                <h3 class="fw-bold text-dark mb-1">สั่งซื้อสินค้าเรียบร้อยแล้ว!</h3>
+                <p class="text-secondary mb-3">หมายเลขคำสั่งซื้อของคุณคือ <strong class="text-primary fs-5">#@Model.OrderId</strong></p>
+                
+                <div class="d-inline-flex justify-content-center gap-2">
+                    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fs-6">
+                        <i class="fa-regular fa-clock me-1"></i>รอชำระเงิน (Pending Payment)
+                    </span>
+                </div>
+            </div>
+
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4 shadow-sm" role="alert">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>@ViewBag.Error
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <!-- ข้อมูลบัญชีสำหรับโอนเงิน & แนบสลิป -->
+            <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="fw-bold mb-0">
+                        <i class="fa-solid fa-qrcode me-2"></i>ข้อมูลการชำระเงิน
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row align-items-center mb-4">
+                        <div class="col-md-5 text-center mb-3 mb-md-0 border-end-md">
+                            <div class="border rounded-4 p-3 d-inline-block bg-white shadow-sm">
+                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=PROMPTPAY-MOCKUP-ORDER-@Model.OrderId-AMOUNT-@Model.TotalAmount" 
+                                     alt="PromptPay QR Code" class="img-fluid rounded-2 mb-2" style="max-width: 170px;" />
+                                <div class="small fw-bold text-muted">สแกนชำระเงิน PromptPay</div>
+                            </div>
+                        </div>
+                        <div class="col-md-7 ps-md-4">
+                            <h6 class="fw-bold text-secondary mb-3">โอนเงินเข้าบัญชีธนาคาร:</h6>
+                            <div class="p-3 bg-light rounded-3 mb-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="bg-success text-white rounded-circle p-2 me-2" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;">
+                                        <i class="fa-solid fa-building-columns small"></i>
+                                    </div>
+                                    <span class="fw-bold">ธนาคารกสิกรไทย (KBANK)</span>
+                                </div>
+                                <div class="fs-5 fw-bold text-primary mb-1">012-3-45678-9</div>
+                                <div class="small text-muted mb-2">ชื่อบัญชี: บจก. เสื้อผ้า ดอทคอม</div>
+                                <div class="fw-bold fs-5 text-danger">
+                                    ยอดเงินที่ต้องโอน: ฿@Model.TotalAmount.ToString("N0")
+                                </div>
+                            </div>
+                            <small class="text-muted d-block">
+                                <i class="fa-solid fa-circle-info text-info me-1"></i>โอนเงินและแนบสลิปภายใน 24 ชม. เพื่อป้องกันการยกเลิกออเดอร์
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- ฟอร์มแนบสลิป -->
+                    <div class="border-top pt-4">
+                        <h6 class="fw-bold mb-3 text-dark">
+                            <i class="fa-solid fa-paperclip text-primary me-2"></i>แนบหลักฐานการโอนเงิน (สลิป):
+                        </h6>
+                        <form method="post" asp-action="UploadSlip" enctype="multipart/form-data">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="orderId" value="@Model.OrderId" />
+
+                            <div class="row g-2 align-items-center">
+                                <div class="col-sm-8">
+                                    <input type="file" name="slipImage" class="form-control" accept="image/*" required />
+                                </div>
+                                <div class="col-sm-4">
+                                    <button type="submit" class="btn btn-success w-100 fw-bold rounded-pill">
+                                        <i class="fa-solid fa-upload me-1"></i>ส่งสลิปชำระเงิน
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- สรุปที่อยู่ & สินค้า -->
+            <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h6 class="fw-bold mb-0">รายละเอียดคำสั่งซื้อ</h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-3">
+                        <span class="fw-semibold text-muted small d-block">ที่อยู่จัดส่ง:</span>
+                        <strong>@Model.Address?.ReceiverName</strong> (@Model.Address?.Phone)<br />
+                        <span class="text-muted small">@Model.Address?.AddressLine, @Model.Address?.District, @Model.Address?.Province @Model.Address?.PostalCode</span>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm table-borderless align-middle mb-0">
+                            @foreach (var item in Model.Orderitems)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@item.Variant?.Product?.ProductName</strong>
+                                        <small class="text-muted d-block">สี: @item.Variant?.Color | ไซส์: @item.Variant?.Size</small>
+                                    </td>
+                                    <td class="text-center">x@item.Quantity</td>
+                                    <td class="text-end fw-semibold">฿@((item.UnitPrice * item.Quantity).ToString("N0"))</td>
+                                </tr>
+                            }
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ปุ่มกลับหน้าหลักหรือดูประวัติ -->
+            <div class="d-flex justify-content-center gap-3">
+                <a asp-action="MyOrders" class="btn btn-outline-primary rounded-pill px-4">
+                    <i class="fa-solid fa-clock-rotate-left me-1"></i>ดูประวัติคำสั่งซื้อของฉัน
+                </a>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-primary rounded-pill px-4">
+                    <i class="fa-solid fa-shirt me-1"></i>ช้อปปิ้งต่อ
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+

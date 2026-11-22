@@ -1,9 +1,471 @@
+@model IEnumerable<waranon_csi402.Models.Product>
+
 @{
-    ViewData["Title"] = "Home Page";
-    
+    ViewData["Title"] = "หน้าแรก - เสื้อผ้า.com แฟชั่นเพื่อทุกคน";
+    var categories = ViewBag.Categories as List<waranon_csi402.Models.Category> ?? new List<waranon_csi402.Models.Category>();
+    var coupons = ViewBag.Coupons as List<waranon_csi402.Models.Coupon> ?? new List<waranon_csi402.Models.Coupon>();
+    var userWishlist = ViewBag.UserWishlist as HashSet<int> ?? new HashSet<int>();
+    int? selectedCategory = ViewBag.SelectedCategory as int?;
+    string search = ViewBag.Search as string ?? "";
+    string sortBy = ViewBag.SortBy as string ?? "newest";
+    var currentCat = categories.FirstOrDefault(c => c.CategoryId == selectedCategory);
+
+    string GetCategoryIcon(int catId) => catId switch
+    {
+        1 => "fa-shirt",
+        2 => "fa-vest",
+        3 => "fa-tag",
+        4 => "fa-cloud",
+        5 => "fa-user-tie",
+        _ => "fa-bag-shopping"
+    };
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+@section Styles {
+    <style>
+        .hero-banner {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0369a1 100%);
+            border-radius: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-banner::after {
+            content: '';
+            position: absolute;
+            right: -50px;
+            bottom: -50px;
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .category-pill-card {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            text-decoration: none;
+            border: 1px solid rgba(0,0,0,0.08);
+        }
+        .category-pill-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.08) !important;
+            border-color: #0d6efd;
+        }
+        .category-pill-card.active {
+            background: #0d6efd !important;
+            color: #ffffff !important;
+            border-color: #0d6efd !important;
+            box-shadow: 0 0.5rem 1rem rgba(13, 110, 253, 0.25) !important;
+        }
+        .category-pill-card.active * {
+            color: #ffffff !important;
+        }
+        .product-card {
+            border-radius: 1rem;
+            transition: all 0.25s ease;
+            border: 1px solid rgba(0,0,0,0.06);
+            background: #ffffff;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.75rem 1.5rem rgba(0,0,0,0.08) !important;
+            border-color: rgba(13, 110, 253, 0.3);
+        }
+        .product-image-container {
+            aspect-ratio: 3 / 4;
+            overflow: hidden;
+            background-color: #f8fafc;
+            position: relative;
+            border-top-left-radius: 1rem;
+            border-top-right-radius: 1rem;
+        }
+        .product-image-container img {
+            transition: transform 0.4s ease;
+            object-fit: cover;
+            width: 100%;
+            height: 100%;
+        }
+        .product-card:hover .product-image-container img {
+            transform: scale(1.05);
+        }
+        .coupon-strip-item {
+            border: 1px dashed rgba(255,255,255,0.4);
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(4px);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .coupon-strip-item:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: #ffffff;
+        }
+    </style>
+}
+
+<div class="container py-3">
+    <!-- 0. แบนเนอร์จาก Admin (แสดงเมื่อมีแบนเนอร์ที่เปิดใช้งาน) -->
+    @{
+        var banners = ViewBag.Banners as List<waranon_csi402.Models.Banner> ?? new List<waranon_csi402.Models.Banner>();
+    }
+    @if (banners.Any())
+    {
+        <div id="shopBanners" class="carousel slide mb-4 rounded-4 overflow-hidden shadow-sm" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                @for (int i = 0; i < banners.Count; i++)
+                {
+                    var b = banners[i];
+                    <div class="carousel-item @(i == 0 ? "active" : "")">
+                        <a href="@(string.IsNullOrEmpty(b.LinkUrl) ? "#" : b.LinkUrl)">
+                            <img src="@b.ImageUrl" class="d-block w-100" alt="@b.Title" style="height: 320px; object-fit: cover;" />
+                        </a>
+                        <div class="carousel-caption text-start">
+                            <h3 class="fw-bold" style="text-shadow: 0 2px 6px rgba(0,0,0,.5);">@b.Title</h3>
+                            @if (!string.IsNullOrEmpty(b.Subtitle))
+                            {
+                                <p style="text-shadow: 0 2px 6px rgba(0,0,0,.5);">@b.Subtitle</p>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+            @if (banners.Count > 1)
+            {
+                <button class="carousel-control-prev" type="button" data-bs-target="#shopBanners" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon"></span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#shopBanners" data-bs-slide="next">
+                    <span class="carousel-control-next-icon"></span>
+                </button>
+            }
+        </div>
+    }
+
+    <!-- 1. HERO BANNER: ดีไซน์ใหม่ เรียบหรู ใช้งานง่าย มีช่องค้นหาในตัว -->
+    <div class="hero-banner p-4 p-md-5 mb-4 text-white shadow-sm">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-7">
+                <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold mb-3 shadow-sm">
+                    <i class="fa-solid fa-fire text-danger me-1"></i> New Collection 2026
+                </span>
+                <h1 class="display-6 fw-bold mb-2">เสื้อผ้าแฟชั่น เรียบง่าย ใส่สบาย</h1>
+                <p class="text-light opacity-90 mb-4 col-md-10 fs-6">
+                    คัดสรรเนื้อผ้าคุณภาพสูง ตอบโจทย์ทุกไลฟ์สไตล์ ดีไซน์ทันสมัย ใส่ได้ทุกวัน พร้อมโปรโมชั่นพิเศษมากมาย
+                </p>
+
+                <!-- กล่องค้นหาใน Hero สะดวก ทันสมัย -->
+                <form method="get" asp-action="Index" class="mb-4">
+                    @if (selectedCategory.HasValue)
+                    {
+                        <input type="hidden" name="categoryId" value="@selectedCategory.Value" />
+                    }
+                    <div class="input-group input-group-lg shadow-sm" style="max-width: 520px;">
+                        <span class="input-group-text bg-white border-0 ps-3 text-muted">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input type="text" name="search" value="@search" class="form-control border-0 fs-6" 
+                               placeholder="ค้นหาชื่อเสื้อผ้า, สี, เนื้อผ้า..." />
+                        <button class="btn btn-warning text-dark fw-bold px-4" type="submit">
+                            ค้นหา
+                        </button>
+                    </div>
+                </form>
+
+                <!-- จุดเด่นร้านค้า 3 อย่าง -->
+                <div class="d-flex flex-wrap gap-3 small text-light opacity-90">
+                    <div><i class="fa-solid fa-truck-fast text-warning me-1"></i> ส่งฟรีเมื่อครบ ฿500</div>
+                    <div><i class="fa-solid fa-shield-check text-success me-1"></i> ของแท้ 100%</div>
+                    <div><i class="fa-solid fa-rotate-left text-info me-1"></i> เปลี่ยนคืนใน 7 วัน</div>
+                </div>
+            </div>
+
+            <!-- คูปองส่วนลดด่วน (Click to Copy) ฝั่งขวา -->
+            <div class="col-lg-5">
+                <div class="bg-black bg-opacity-25 p-4 rounded-4 border border-light border-opacity-10">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <span class="fw-bold small text-warning">
+                            <i class="fa-solid fa-ticket me-1"></i> โค้ดส่วนลดพิเศษวันนี้
+                        </span>
+                        <small class="text-white opacity-75" style="font-size: 0.75rem;">คลิกเพื่อคัดลอกโค้ด</small>
+                    </div>
+
+                    <div class="d-flex flex-column gap-2">
+                        @if (coupons.Any())
+                        {
+                            @foreach (var c in coupons)
+                            {
+                                <div class="coupon-strip-item p-2 px-3 rounded-3 d-flex align-items-center justify-content-between"
+                                     onclick="copyCouponCode('@c.CouponCode')" title="คลิกเพื่อคัดลอกโค้ด @c.CouponCode">
+                                    <div>
+                                        <span class="badge bg-white text-dark font-monospace fw-bold me-2 px-2 py-1">@c.CouponCode</span>
+                                        <span class="small text-white">
+                                            @(c.DiscountType == "Percent" || c.DiscountType == "Percentage" ? $"ลด {c.DiscountValue:N0}%" : $"ลด ฿{c.DiscountValue:N0}")
+                                            <span class="opacity-75" style="font-size: 0.75rem;">(ขั้นต่ำ ฿@c.MinOrderAmt.ToString("N0"))</span>
+                                        </span>
+                                    </div>
+                                    <span class="badge bg-light text-dark rounded-pill small" style="font-size: 0.7rem;">
+                                        <i class="fa-solid fa-copy me-1"></i>คัดลอก
+                                    </span>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="coupon-strip-item p-2 px-3 rounded-3 d-flex align-items-center justify-content-between"
+                                 onclick="copyCouponCode('SAVE10')">
+                                <div>
+                                    <span class="badge bg-white text-dark font-monospace fw-bold me-2 px-2 py-1">SAVE10</span>
+                                    <span class="small text-white">ลด 10% เมื่อช้อปครบ ฿500</span>
+                                </div>
+                                <span class="badge bg-light text-dark rounded-pill small" style="font-size: 0.7rem;">
+                                    <i class="fa-solid fa-copy me-1"></i>คัดลอก
+                                </span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. หมวดหมู่สินค้าแบบ Visual Cards: สะอาดตา ใช้งานง่าย คลิกเลือกได้ทันที -->
+    <div class="mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="fa-solid fa-layer-group text-primary me-2"></i>เลือกตามหมวดหมู่สินค้า
+            </h5>
+            @if (selectedCategory.HasValue)
+            {
+                <a asp-action="Index" asp-route-search="@search" class="small text-primary text-decoration-none fw-semibold">
+                    <i class="fa-solid fa-rotate-left me-1"></i>ดูสินค้าทั้งหมด
+                </a>
+            }
+        </div>
+
+        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-6 g-2">
+            <!-- ปุ่มหมวดทั้งหมด -->
+            <div class="col">
+                <a asp-action="Index" asp-route-search="@search" asp-route-sortBy="@sortBy"
+                   class="category-pill-card card p-3 text-center rounded-3 bg-white h-100 @(selectedCategory == null || selectedCategory == 0 ? "active" : "")">
+                    <div class="mb-2">
+                        <i class="fa-solid fa-border-all fs-4 text-primary"></i>
+                    </div>
+                    <div class="small fw-bold">ทั้งหมด</div>
+                </a>
+            </div>
+
+            <!-- รายการหมวดหมู่แต่ละตัว -->
+            @foreach (var cat in categories)
+            {
+                var isSelected = selectedCategory == cat.CategoryId;
+                <div class="col">
+                    <a asp-action="Index" asp-route-categoryId="@cat.CategoryId" asp-route-search="@search" asp-route-sortBy="@sortBy"
+                       class="category-pill-card card p-3 text-center rounded-3 bg-white h-100 @(isSelected ? "active" : "")">
+                        <div class="mb-2">
+                            <i class="fa-solid @GetCategoryIcon(cat.CategoryId) fs-4 text-primary"></i>
+                        </div>
+                        <div class="small fw-bold text-truncate">@cat.CategoryName</div>
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- 3. แถบควบคุมตัวกรอง & การเรียงลำดับ (Toolbar) -->
+    <div class="card shadow-sm border-0 rounded-4 bg-white p-3 mb-4">
+        <div class="row g-2 align-items-center justify-content-between">
+            <!-- ซ้าย: สถานะตัวกรอง -->
+            <div class="col-md-7 d-flex align-items-center flex-wrap gap-2">
+                <span class="fw-bold text-dark fs-6 me-2">
+                    @(currentCat != null ? currentCat.CategoryName : "สินค้าทั้งหมด")
+                </span>
+                <span class="badge bg-light text-secondary border rounded-pill px-3 py-2">
+                    พบ @Model.Count() รายการ
+                </span>
+
+                @if (!string.IsNullOrEmpty(search))
+                {
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2">
+                        คำค้นหา: "@search"
+                        <a asp-action="Index" asp-route-categoryId="@selectedCategory" asp-route-sortBy="@sortBy" 
+                           class="text-primary ms-1 text-decoration-none fw-bold" title="ลบคำค้น">&times;</a>
+                    </span>
+                }
+
+                @if (selectedCategory.HasValue || !string.IsNullOrEmpty(search))
+                {
+                    <a asp-action="Index" class="btn btn-link btn-sm text-muted text-decoration-none p-0 ms-2 small">
+                        ล้างตัวกรอง
+                    </a>
+                }
+            </div>
+
+            <!-- ขวา: เมนูจัดเรียงลำดับ (Sorting Dropdown) -->
+            <div class="col-md-5 d-flex justify-content-md-end align-items-center gap-2">
+                <label class="small text-muted text-nowrap fw-semibold">เรียงตาม:</label>
+                <div class="btn-group btn-group-sm">
+                    <a asp-action="Index" asp-route-categoryId="@selectedCategory" asp-route-search="@search" asp-route-sortBy="newest"
+                       class="btn @(sortBy == "newest" ? "btn-primary" : "btn-outline-secondary")">
+                        ใหม่ล่าสุด
+                    </a>
+                    <a asp-action="Index" asp-route-categoryId="@selectedCategory" asp-route-search="@search" asp-route-sortBy="price_asc"
+                       class="btn @(sortBy == "price_asc" ? "btn-primary" : "btn-outline-secondary")">
+                        ราคา: ต่ำ ➔ สูง
+                    </a>
+                    <a asp-action="Index" asp-route-categoryId="@selectedCategory" asp-route-search="@search" asp-route-sortBy="price_desc"
+                       class="btn @(sortBy == "price_desc" ? "btn-primary" : "btn-outline-secondary")">
+                        ราคา: สูง ➔ ต่ำ
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. ตารางสินค้า (Product Cards Grid) -->
+    @if (!Model.Any())
+    {
+        <div class="card shadow-sm border-0 text-center py-5 my-4 bg-white rounded-4">
+            <div class="card-body">
+                <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center p-4 mb-3" style="width: 90px; height: 90px;">
+                    <i class="fa-solid fa-shirt fa-2x text-muted opacity-50"></i>
+                </div>
+                <h5 class="fw-bold text-dark">ไม่พบสินค้าที่ค้นหา</h5>
+                <p class="text-secondary small mb-4">ลองเปลี่ยนคำค้นหา หรือเลือกหมวดหมู่อื่นดูนะครับ</p>
+                <a asp-action="Index" class="btn btn-primary rounded-pill px-4 fw-semibold">
+                    <i class="fa-solid fa-rotate-left me-1"></i> ดูสินค้าทั้งหมด
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3 g-md-4">
+            @foreach (var item in Model)
+            {
+                var variants = item.Productvariants ?? new List<waranon_csi402.Models.Productvariant>();
+                var totalStock = variants.Sum(v => v.Stock);
+                var colors = variants.Select(v => v.Color).Distinct().ToList();
+                var sizes = variants.Select(v => v.Size).Distinct().ToList();
+
+                <div class="col">
+                    <div class="product-card h-100 d-flex flex-column shadow-sm position-relative">
+                        <!-- ส่วนรูปภาพ 3:4 -->
+                        <div class="product-image-container">
+                            <a asp-action="ProductDetail" asp-route-id="@item.ProductId" class="d-block w-100 h-100">
+                                <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "https://placehold.co/400x530?text=Fashion" : item.ImageUrl)" 
+                                     alt="@item.ProductName" />
+                            </a>
+
+                            <!-- ป้ายหมวดหมู่มุมซ้ายบน -->
+                            <span class="position-absolute top-0 start-0 m-2 badge bg-white text-dark shadow-sm rounded-pill px-2 py-1 small fw-semibold" style="z-index: 2;">
+                                @(item.Category?.CategoryName ?? "เสื้อผ้า")
+                            </span>
+
+                            <!-- ปุ่มรายการโปรด (Wishlist Heart) มุมขวาบน -->
+                            <form method="post" asp-action="ToggleWishlist" class="position-absolute top-0 end-0 m-2" style="z-index: 3;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="productId" value="@item.ProductId" />
+                                <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                                <button type="submit" class="btn btn-sm rounded-circle shadow-sm d-flex align-items-center justify-content-center @(userWishlist.Contains(item.ProductId) ? "btn-danger text-white" : "btn-light text-danger")" 
+                                        style="width: 32px; height: 32px;" title="@(userWishlist.Contains(item.ProductId) ? "นำออกจากรายการโปรด" : "เพิ่มในรายการโปรด")">
+                                    <i class="@(userWishlist.Contains(item.ProductId) ? "fa-solid" : "fa-regular") fa-heart" style="font-size: 0.85rem;"></i>
+                                </button>
+                            </form>
+
+                            <!-- ป้ายสต็อกมุมซ้ายล่าง -->
+                            @if (totalStock <= 0)
+                            {
+                                <span class="position-absolute bottom-0 start-0 m-2 badge bg-danger rounded-pill px-2 py-1 small" style="z-index: 2;">
+                                    สินค้าหมด
+                                </span>
+                            }
+                            else if (totalStock <= 10)
+                            {
+                                <span class="position-absolute bottom-0 start-0 m-2 badge bg-warning text-dark rounded-pill px-2 py-1 small" style="z-index: 2;">
+                                    เหลือ @totalStock ชิ้น
+                                </span>
+                            }
+                        </div>
+
+                        <!-- รายละเอียดสินค้า -->
+                        <div class="p-3 d-flex flex-column flex-grow-1">
+                            <!-- ชื่อสินค้า -->
+                            <h6 class="fw-bold mb-1" style="font-size: 0.95rem; line-height: 1.4;">
+                                <a asp-action="ProductDetail" asp-route-id="@item.ProductId" 
+                                   class="text-decoration-none text-dark text-truncate d-block" title="@item.ProductName">
+                                    @item.ProductName
+                                </a>
+                            </h6>
+
+                            <!-- ตัวเลือกสี / ไซส์ -->
+                            <div class="small text-muted mb-2" style="font-size: 0.78rem;">
+                                @if (colors.Any())
+                                {
+                                    <span><i class="fa-solid fa-palette me-1 text-secondary"></i>@colors.Count สี</span>
+                                }
+                                @if (sizes.Any())
+                                {
+                                    <span class="ms-2"><i class="fa-solid fa-ruler me-1 text-secondary"></i>@string.Join(", ", sizes.Take(3))</span>
+                                }
+                            </div>
+
+                            <!-- ราคาและปุ่มสั่งซื้อ -->
+                            <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
+                                <div>
+                                    <small class="text-muted d-block" style="font-size: 0.7rem;">ราคาเริ่มต้น</small>
+                                    <span class="fs-5 fw-bold text-primary">฿@item.BasePrice.ToString("N0")</span>
+                                </div>
+
+                                <a asp-action="ProductDetail" asp-route-id="@item.ProductId" 
+                                   class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold">
+                                    ดูสินค้า <i class="fa-solid fa-arrow-right small ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- 5. แถบสิทธิประโยชน์ด้านล่าง (Trust / Value Props) -->
+    <div class="row g-3 mt-4 text-center">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 bg-white shadow-sm p-3 rounded-4 h-100">
+                <i class="fa-solid fa-truck-fast text-primary fs-3 mb-2"></i>
+                <h6 class="fw-bold mb-1">จัดส่งด่วนทั่วไทย</h6>
+                <small class="text-muted">ส่งฟรีเมื่อช้อปครบ ฿500</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 bg-white shadow-sm p-3 rounded-4 h-100">
+                <i class="fa-solid fa-rotate-left text-success fs-3 mb-2"></i>
+                <h6 class="fw-bold mb-1">เปลี่ยนคืนง่ายใน 7 วัน</h6>
+                <small class="text-muted">หากสินค้ามีปัญหาเปลี่ยนฟรี</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 bg-white shadow-sm p-3 rounded-4 h-100">
+                <i class="fa-solid fa-shield-halved text-info fs-3 mb-2"></i>
+                <h6 class="fw-bold mb-1">ของแท้คุณภาพ 100%</h6>
+                <small class="text-muted">ตัดเย็บประณีต เนื้อผ้าพรีเมียม</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 bg-white shadow-sm p-3 rounded-4 h-100">
+                <i class="fa-solid fa-headset text-warning fs-3 mb-2"></i>
+                <h6 class="fw-bold mb-1">บริการช่วยเหลือ</h6>
+                <small class="text-muted">สอบถามได้ตลอด 24 ชั่วโมง</small>
+            </div>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <script>
+        function copyCouponCode(code) {
+            navigator.clipboard.writeText(code).then(function() {
+                alert("คัดลอกโค้ดส่วนลด: " + code + " แล้ว! นำไปใช้ในหน้าตะกร้าสินค้าได้ทันทีครับ");
+            });
+        }
+    </script>
+}

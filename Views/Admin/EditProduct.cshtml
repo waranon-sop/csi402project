@@ -1,0 +1,182 @@
+@model waranon_csi402.Models.Product
+
+@{
+    ViewData["Title"] = "แก้ไขสินค้า #" + Model.ProductId;
+    Layout = "_LayoutAdmin";
+    var categories = ViewBag.Categories as List<waranon_csi402.Models.Category> ?? new List<waranon_csi402.Models.Category>();
+}
+
+<!-- Page Header & Action Shortcut -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a asp-action="ProductList" class="text-decoration-none">จัดการสินค้า</a></li>
+                <li class="breadcrumb-item active" aria-current="page">แก้ไขสินค้า #@Model.ProductId</li>
+            </ol>
+        </nav>
+        <h3 class="fw-bold mb-0 text-dark">
+            <i class="fa-solid fa-pen-to-square text-warning me-2"></i>แก้ไขข้อมูลสินค้า
+        </h3>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="ManageVariants" asp-controller="Admin" asp-route-productId="@Model.ProductId" 
+           class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-medium shadow-sm">
+            <i class="fa-solid fa-layer-group me-1"></i>จัดการตัวเลือก SKU (สี/ไซส์/สต็อก)
+        </a>
+        <a asp-action="ProductList" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="fa-solid fa-arrow-left me-1"></i>กลับ
+        </a>
+    </div>
+</div>
+
+@if (ViewBag.Status != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i>@ViewBag.Status
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<form asp-action="EditProduct" asp-controller="Admin" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="ProductId" value="@Model.ProductId" />
+
+    <div class="row g-4 mb-5">
+        <!-- ฝั่งซ้าย: ข้อมูลสินค้า -->
+        <div class="col-lg-8">
+            <div class="card card-custom p-4 mb-4">
+                <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom">
+                    <i class="fa-solid fa-file-pen text-primary me-2"></i>รายละเอียดสินค้าหลัก
+                </h5>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold text-dark">ชื่อสินค้า <span class="text-danger">*</span></label>
+                    <input type="text" name="ProductName" value="@Model.ProductName" class="form-control form-control-lg fs-6" required />
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-dark">หมวดหมู่สินค้า <span class="text-danger">*</span></label>
+                        <select name="CategoryId" class="form-select" required>
+                            @foreach (var c in categories)
+                            {
+                                <option value="@c.CategoryId" selected="@(Model.CategoryId == c.CategoryId)">
+                                    @c.CategoryName
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-dark">ราคาตั้งต้น (Base Price) <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light fw-bold text-muted">฿</span>
+                            <input type="number" step="0.01" min="0" name="BasePrice" value="@Model.BasePrice" class="form-control" required />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold text-dark">คำอธิบายสินค้า</label>
+                    <textarea name="Description" class="form-control" rows="4">@Model.Description</textarea>
+                </div>
+            </div>
+
+            <!-- กล่องแนะนำ SKU -->
+            <div class="card card-custom p-4 bg-light border">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="fw-bold text-dark mb-1">
+                            <i class="fa-solid fa-tags text-primary me-2"></i>ต้องการแก้ไขสต็อก สี หรือไซส์?
+                        </h6>
+                        <p class="text-muted small mb-0">ระบบแยกการจัดการตัวเลือกสินค้า (SKU) ไว้เพื่อให้กำหนดราคาบวกเพิ่มและสต็อกได้ตามต้องการ</p>
+                    </div>
+                    <a asp-action="ManageVariants" asp-controller="Admin" asp-route-productId="@Model.ProductId" 
+                       class="btn btn-primary btn-sm rounded-pill px-3 text-nowrap">
+                        ไปหน้าจัดการ SKU
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ฝั่งขวา: พรีวิวรูปภาพ & สถานะ -->
+        <div class="col-lg-4">
+            <!-- สถานะสินค้า -->
+            <div class="card card-custom p-4 mb-4">
+                <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom">สถานะการวางขาย</h6>
+                <div class="mb-3">
+                    <select name="IsActive" class="form-select">
+                        <option value="true" selected="@(Model.IsActive == true || Model.IsActive == null)">🟢 เปิดขาย (Active)</option>
+                        <option value="false" selected="@(Model.IsActive == false)">⚪ ปิดการขายชั่วคราว (Draft)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- รูปภาพสินค้าพร้อม Live Preview -->
+            <div class="card card-custom p-4 mb-4">
+                <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom">รูปภาพสินค้า (Image URL)</h6>
+
+                <div class="mb-3">
+                    <label class="form-label small text-muted">ลิงก์รูปภาพ (Direct URL)</label>
+                    <input type="url" id="imageUrlInput" name="ImageUrl" value="@Model.ImageUrl" class="form-control form-control-sm" 
+                           oninput="previewImage(this.value)" />
+                </div>
+
+                <div class="text-center p-3 bg-light rounded-3 border">
+                    <div id="imagePlaceholder" class="py-4 text-muted @(!string.IsNullOrEmpty(Model.ImageUrl) ? "d-none" : "")">
+                        <i class="fa-solid fa-image fa-3x mb-2 opacity-50"></i>
+                        <p class="small mb-0">ใส่ URL ด้านบนเพื่อดูพรีวิวรูปภาพ</p>
+                    </div>
+                    <div id="imagePreviewBox" class="@(string.IsNullOrEmpty(Model.ImageUrl) ? "d-none" : "")">
+                        <img id="imgPreview" src="@Model.ImageUrl" alt="พรีวิวรูปภาพ" class="img-fluid rounded-3 shadow-sm" style="max-height: 220px; object-fit: contain;" 
+                             onerror="onPreviewError()" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- ปุ่มบันทึก -->
+            <div class="card card-custom p-4">
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-warning py-2 fw-bold text-dark shadow-sm">
+                        <i class="fa-solid fa-check me-1"></i> บันทึกการแก้ไข
+                    </button>
+                    <a asp-action="ProductList" class="btn btn-outline-secondary py-2">
+                        ยกเลิก
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        function previewImage(url) {
+            const placeholder = document.getElementById('imagePlaceholder');
+            const previewBox = document.getElementById('imagePreviewBox');
+            const img = document.getElementById('imgPreview');
+
+            if (url && url.trim().length > 5) {
+                img.src = url.trim();
+                placeholder.classList.add('d-none');
+                previewBox.classList.remove('d-none');
+            } else {
+                placeholder.classList.remove('d-none');
+                previewBox.classList.add('d-none');
+            }
+        }
+
+        function onPreviewError() {
+            const placeholder = document.getElementById('imagePlaceholder');
+            const previewBox = document.getElementById('imagePreviewBox');
+            placeholder.classList.remove('d-none');
+            previewBox.classList.add('d-none');
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const val = document.getElementById('imageUrlInput').value;
+            if (val) previewImage(val);
+        });
+    </script>
+}

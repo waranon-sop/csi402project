@@ -19,4 +19,9 @@
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Watch Remove="wwwroot\images\slips\**" />
+    <Content Update="wwwroot\images\slips\**" Watch="false" />
+  </ItemGroup>
+
 </Project>

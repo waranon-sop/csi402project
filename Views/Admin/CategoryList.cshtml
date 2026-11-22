@@ -1,0 +1,102 @@
+@model IEnumerable<waranon_csi402.Models.Category>
+
+@{
+    ViewData["Title"] = "จัดการหมวดหมู่สินค้า";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div>
+        <h3 class="fw-bold mb-1 text-dark">
+            <i class="fa-solid fa-tags text-warning me-2"></i>จัดการหมวดหมู่สินค้า
+        </h3>
+        <p class="text-muted small mb-0">รายการหมวดหมู่เสื้อผ้าทั้งหมดที่ใช้จัดกลุ่มสินค้าหน้าร้าน</p>
+    </div>
+    <a asp-action="AddCategory" asp-controller="Admin" class="btn btn-primary rounded-pill px-4 shadow-sm fw-medium">
+        <i class="fa-solid fa-plus me-1"></i> เพิ่มหมวดหมู่ใหม่
+    </a>
+</div>
+
+@if (ViewBag.Status != null)
+{
+    <div class="alert alert-info alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
+        <i class="fa-solid fa-circle-info me-2"></i>@ViewBag.Status
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="card card-custom overflow-hidden">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-custom table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">รหัส</th>
+                        <th>ชื่อหมวดหมู่ (Category Name)</th>
+                        <th>รายละเอียด (Description)</th>
+                        <th class="text-center" style="width: 160px;">จำนวนสินค้า</th>
+                        <th class="text-center" style="width: 180px;">จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-tags fa-3x mb-3 d-block opacity-50"></i>
+                                <h5>ยังไม่มีข้อมูลหมวดหมู่สินค้า</h5>
+                                <p class="small mb-3">กดปุ่มเพิ่มหมวดหมู่เพื่อจัดกลุ่มเสื้อผ้าของคุณ</p>
+                                <a asp-action="AddCategory" class="btn btn-primary btn-sm rounded-pill px-4">เพิ่มหมวดหมู่แรก</a>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var cat in Model)
+                        {
+                            var prodCount = cat.Products?.Count ?? 0;
+                            <tr>
+                                <td class="fw-bold text-secondary">#@cat.CategoryId</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-warning bg-opacity-10 text-dark rounded-3 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                            <i class="fa-solid fa-tag text-warning"></i>
+                                        </div>
+                                        <div>
+                                            <span class="fw-bold text-dark fs-6">@cat.CategoryName</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="text-muted small">
+                                        @(string.IsNullOrEmpty(cat.Description) ? "ไม่มีคำอธิบายเพิ่มเติม" : cat.Description)
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <a asp-action="ProductList" asp-controller="Admin" asp-route-categoryId="@cat.CategoryId" 
+                                       class="badge badge-soft-primary text-decoration-none px-3 py-2 rounded-pill fw-medium" title="คลิกเพื่อดูสินค้าในหมวดหมู่นี้">
+                                        <i class="fa-solid fa-shirt me-1"></i>@prodCount รายการ
+                                    </a>
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center gap-1">
+                                        <a asp-action="EditCategory" asp-controller="Admin" asp-route-id="@cat.CategoryId" 
+                                           class="btn btn-sm btn-outline-warning rounded-pill px-3" title="แก้ไขหมวดหมู่">
+                                            <i class="fa-solid fa-pen me-1"></i>แก้ไข
+                                        </a>
+                                        <form method="post" asp-action="DeleteCategory" asp-controller="Admin" asp-route-id="@cat.CategoryId" class="d-inline"
+                                              onsubmit="return confirm('ยืนยันว่าต้องการลบหมวดหมู่ @cat.CategoryName หรือไม่? (จะไม่สามารถลบได้หากยังมีสินค้าอยู่ในหมวดหมู่นี้)');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3" title="ลบ">
+                                                <i class="fa-solid fa-trash me-1"></i>ลบ
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

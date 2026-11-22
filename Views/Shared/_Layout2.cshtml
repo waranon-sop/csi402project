@@ -1,3 +1,25 @@
+@inject waranon_csi402.Models.Csi402dbContext _db
+@{
+    int navCartCount = 0;
+    int navWishlistCount = 0;
+    try
+    {
+        var navEmail = TempData.Peek("LoginEmail") as string;
+        int navUserId = 0;
+        if (!string.IsNullOrEmpty(navEmail))
+        {
+            var u = (from usr in _db.Users where usr.Email == navEmail select usr).FirstOrDefault();
+            if (u != null) navUserId = u.UserId;
+        }
+
+        if (navUserId > 0)
+        {
+            navCartCount = (from ci in _db.Cartitems where ci.UserId == navUserId select ci.Quantity).Sum();
+            navWishlistCount = (from w in _db.Wishlists where w.UserId == navUserId select w).Count();
+        }
+    }
+    catch { }
+}
 <!DOCTYPE html>
 <html lang="th">
 
@@ -9,9 +31,25 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/waranon_csi402.styles.css" asp-append-version="true" />
     <!-- Google Fonts: Prompt -->
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome สำหรับไอคอน -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .transition-hover {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .transition-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.12) !important;
+        }
+    </style>
     @RenderSection("Styles", required: false)
 </head>
 
@@ -19,171 +57,307 @@
 
     <!-- Header / Navbar -->
     <header>
-        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top py-3">
+        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top py-2 py-lg-3">
             <div class="container">
                 <!-- โลโก้แบรนด์ -->
-                <a class="navbar-brand fw-bold fs-4 text-dark" asp-area="" asp-controller="Home" asp-action="Index">
-                    <i class="fa-solid fa-shirt text-primary me-2"></i>เสื้อผ้า.com
+                <a class="navbar-brand fw-bold fs-4 text-dark d-flex align-items-center me-4" asp-area="" asp-controller="Home" asp-action="Index">
+                    <span class="bg-primary text-white rounded p-2 me-2 d-inline-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                        <i class="fa-solid fa-shirt"></i>
+                    </span>
+                    <span>เสื้อผ้า<span class="text-primary">.com</span></span>
                 </a>
 
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
                 <div class="collapse navbar-collapse" id="navbarContent">
-                    <!-- เมนูหลัก -->
-                    <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
-                        <li class="nav-item"><a class="nav-link active text-dark px-3" asp-area="" asp-controller="Home"
-                                                    asp-action="Index">หน้าแรก</a></li>
-                            <li class="nav-item"><a class="nav-link text-dark px-3" asp-area="" asp-controller="Product"
-                                                        asp-action="Index">สินค้าทั้งหมด</a></li>
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle text-dark px-3" href="#" role="button"
-                                       data-bs-toggle="dropdown" aria-expanded="false">
-                                        หมวดหมู่
-                                    </a>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="#">เสื้อผ้าผู้ชาย</a></li>
-                                        <li><a class="dropdown-item" href="#">เสื้อผ้าผู้หญิง</a></li>
-                                        <li><a class="dropdown-item" href="#">เครื่องประดับ</a></li>
-                                        <li>
-                                            <hr class="dropdown-divider">
-                                        </li>
-                                        <li><a class="dropdown-item" href="#">สินค้าทั้งหมด</a></li>
-                                    </ul>
-                                </li>
-                                <li class="nav-item"><a class="nav-link text-dark px-3" href="#">โปรโมชั่น</a></li>
+                    <!-- เมนูหลัก ไม่ซ้ำซ้อน -->
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 align-items-lg-center">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-3 fw-medium" asp-area="" asp-controller="Home" asp-action="Index">
+                                <i class="fa-solid fa-house me-1 text-primary"></i>หน้าแรก
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-dark px-3 fw-medium" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-solid fa-layer-group me-1 text-secondary"></i>หมวดหมู่เสื้อผ้า
+                            </a>
+                            <ul class="dropdown-menu shadow-sm border-0">
+                                <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Index" asp-route-categoryId="1"><i class="fa-solid fa-shirt me-2 text-primary"></i>เสื้อยืด (T-Shirts)</a></li>
+                                <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Index" asp-route-categoryId="2"><i class="fa-solid fa-vest me-2 text-info"></i>เสื้อเชิ้ต (Shirts)</a></li>
+                                <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Index" asp-route-categoryId="3"><i class="fa-solid fa-tag me-2 text-success"></i>เสื้อโปโล (Polo)</a></li>
+                                <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Index" asp-route-categoryId="4"><i class="fa-solid fa-cloud me-2 text-warning"></i>เสื้อฮู้ด & สเวตเตอร์</a></li>
+                                <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Index" asp-route-categoryId="5"><i class="fa-solid fa-user-tie me-2 text-danger"></i>เสื้อแจ็กเก็ต & สูทลำลอง</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item py-2 fw-semibold" asp-controller="Home" asp-action="Index"><i class="fa-solid fa-border-all me-2"></i>ดูทั้งหมด</a></li>
                             </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-3 fw-medium" href="/#promotions">
+                                <i class="fa-solid fa-fire text-danger me-1"></i>โปรโมชั่น
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-3 fw-medium" href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#orderGuideModal">
+                                <i class="fa-regular fa-circle-question text-info me-1"></i>วิธีสั่งซื้อ
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-3 fw-medium" asp-controller="Cart" asp-action="TrackOrder">
+                                <i class="fa-solid fa-truck-fast text-success me-1"></i>ติดตามพัสดุ
+                            </a>
+                        </li>
+                    </ul>
 
-                            <!-- เมนูจัดการระบบ -->
-                            <ul class="navbar-nav align-items-center">
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" href="#" title="ค้นหา"><i
-                                        class="fa-solid fa-magnifying-glass"></i></a>
-                                    </li>
-                                    <li class="nav-item ms-2">
-                                        <a class="nav-link text-dark position-relative" href="#" title="ตะกร้าสินค้า">
-                                            <i class="fa-solid fa-cart-shopping"></i>
-                                            <span
-                                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                                                style="font-size: 0.6rem;">
-                                                3
-                                            </span>
+                    <!-- เมนูฝั่งขวา: รายการโปรด, ตะกร้าสินค้า และ ผู้ใช้งาน -->
+                    <ul class="navbar-nav align-items-center">
+                        <!-- ไอคอนรายการโปรด (Wishlist) -->
+                        <li class="nav-item me-1">
+                            <a class="nav-link text-dark position-relative p-2" asp-controller="Home" asp-action="Wishlist" title="รายการโปรดของฉัน">
+                                <i class="fa-regular fa-heart fs-5 text-danger"></i>
+                                @if (navWishlistCount > 0)
+                                {
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm" style="font-size: 0.65rem;">
+                                        @navWishlistCount
+                                    </span>
+                                }
+                            </a>
+                        </li>
+
+                        <!-- ไอคอนแจ้งเตือน (แสดงเมื่อล็อกอินแล้ว) -->
+                        @await Html.PartialAsync("_NotificationBell", "navbar")
+
+                        <!-- ไอคอนตะกร้าสินค้า -->
+                        <li class="nav-item me-2">
+                            <a class="nav-link text-dark position-relative p-2" asp-controller="Cart" asp-action="Index" title="ตะกร้าสินค้า">
+                                <i class="fa-solid fa-cart-shopping fs-5"></i>
+                                @if (navCartCount > 0)
+                                {
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm" style="font-size: 0.65rem;">
+                                        @navCartCount
+                                    </span>
+                                }
+                            </a>
+                        </li>
+
+                        @if (TempData.Peek("Name") != null || (User.Identity != null && User.Identity.IsAuthenticated))
+                        {
+                            <!-- ผู้ใช้ล็อกอินแล้ว -->
+                            <li class="nav-item dropdown ms-2">
+                                <a class="nav-link dropdown-toggle text-dark d-flex align-items-center py-1 px-2 border rounded-pill bg-light" href="#" role="button" data-bs-toggle="dropdown">
+                                    <i class="fa-solid fa-circle-user fs-5 text-primary me-2"></i>
+                                    <span class="fw-medium small pe-1">@(TempData.Peek("Name") ?? User.Identity?.Name)</span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                                    <li class="dropdown-header small">สิทธิ์ใช้งาน: <strong class="text-primary">@(TempData.Peek("Role") ?? "Customer")</strong></li>
+                                    <li>
+                                        <a class="dropdown-item py-2" asp-controller="Account" asp-action="Profile">
+                                            <i class="fa-solid fa-id-card me-2 text-info"></i>ข้อมูลส่วนตัว & บัญชี
                                         </a>
                                     </li>
-                                    @if (User.Identity != null && User.Identity.IsAuthenticated)
+                                    <li>
+                                        <a class="dropdown-item py-2" asp-controller="Account" asp-action="AddressBook">
+                                            <i class="fa-solid fa-map-location-dot me-2 text-success"></i>สมุดที่อยู่จัดส่ง
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-2" asp-controller="Cart" asp-action="MyOrders">
+                                            <i class="fa-solid fa-receipt me-2 text-primary"></i>ประวัติคำสั่งซื้อของฉัน
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-2" asp-controller="Home" asp-action="Wishlist">
+                                            <i class="fa-solid fa-heart me-2 text-danger"></i>รายการโปรดของฉัน (Wishlist)
+                                        </a>
+                                    </li>
+                                    @if (TempData.Peek("Role")?.ToString() == "Admin")
                                     {
-                                        <!-- ผู้ใช้ล็อกอินแล้ว -->
-                                        <li class="nav-item dropdown ms-3 mt-2 mt-lg-0">
-                                            <a class="nav-link dropdown-toggle text-dark d-flex align-items-center" href="#"
-                                               role="button" data-bs-toggle="dropdown">
-                                                <i class="fa-solid fa-circle-user fs-5 me-2"></i>@User.Identity.Name
+                                        <li>
+                                            <a class="dropdown-item py-2" asp-controller="Admin" asp-action="Index">
+                                                <i class="fa-solid fa-shield-halved text-primary me-2"></i>ระบบหลังบ้าน (Admin)
                                             </a>
-                                            <ul class="dropdown-menu dropdown-menu-end">
-                                                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-user me-2"></i>โปรไฟล์</a>
-                                                </li>
-                                                <li><a class="dropdown-item" href="#"><i
-                                                    class="fa-solid fa-bag-shopping me-2"></i>ประวัติการสั่งซื้อ</a></li>
-                                                    <li>
-                                                        <hr class="dropdown-divider">
-                                                    </li>
-                                                    <li><a class="dropdown-item text-danger" href="#"><i
-                                                        class="fa-solid fa-right-from-bracket me-2"></i>ออกจากระบบ</a></li>
-                                                    </ul>
-                                                </li>
-                                            }
+                                        </li>
+                                    }
+                                    else if (TempData.Peek("Role")?.ToString() == "Staff")
+                                    {
+                                        <li>
+                                            <a class="dropdown-item py-2" asp-controller="Staff" asp-action="Index">
+                                                <i class="fa-solid fa-boxes-packing text-info me-2"></i>ระบบคลังสินค้า (Staff)
+                                            </a>
+                                        </li>
+                                    }
+                                    else if (TempData.Peek("Role")?.ToString() == "Accounting")
+                                    {
+                                        <li>
+                                            <a class="dropdown-item py-2" asp-controller="Accounting" asp-action="Index">
+                                                <i class="fa-solid fa-file-invoice-dollar text-success me-2"></i>ระบบการเงิน (Accounting)
+                                            </a>
+                                        </li>
+                                    }
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li class="dropdown-header small">สลับระบบทำงาน (ทดสอบระบบ)</li>
+                                    <li>
+                                        <a class="dropdown-item py-1 small" asp-controller="Admin" asp-action="Index">
+                                            <i class="fa-solid fa-shield-halved text-primary me-2"></i>ผู้ดูแลระบบ (Admin)
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-1 small" asp-controller="Accounting" asp-action="Index">
+                                            <i class="fa-solid fa-calculator text-info me-2"></i>ฝ่ายบัญชี (Accounting)
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-1 small" asp-controller="Staff" asp-action="Index">
+                                            <i class="fa-solid fa-boxes-packing text-success me-2"></i>คลังสินค้า (Staff)
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item py-2 text-danger" asp-controller="Account" asp-action="Logout">
+                                            <i class="fa-solid fa-right-from-bracket me-2"></i>ออกจากระบบ
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
                         else
-                                            {
-                                                <!-- ยังไม่ล็อกอิน (Guest) -->
-                                                <li class="nav-item ms-3 mt-2 mt-lg-0">
-                                                    <a class="btn btn-outline-primary rounded-pill px-4" asp-area="" asp-controller="Account"
-                                                       asp-action="Login">เข้าสู่ระบบ</a>
-                                                </li>
-                                                <li class="nav-item ms-2 mt-2 mt-lg-0">
-                                                    <a class="btn btn-primary rounded-pill px-4" asp-area="" asp-controller="Account"
-                                                       asp-action="Register">สมัครสมาชิก</a>
-                                                </li>
-                                            }
-                                        </ul>
-                                    </div>
-                                </div>
-                            </nav>
-                        </header>
+                        {
+                            <!-- ยังไม่ล็อกอิน (Guest) -->
+                            <li class="nav-item ms-2">
+                                <a class="btn btn-outline-primary rounded-pill px-3 py-1 btn-sm" asp-area="" asp-controller="Account" asp-action="Login">
+                                    เข้าสู่ระบบ
+                                </a>
+                            </li>
+                            <li class="nav-item ms-2">
+                                <a class="btn btn-primary rounded-pill px-3 py-1 btn-sm text-white" asp-area="" asp-controller="Account" asp-action="Register">
+                                    สมัครสมาชิก
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
 
-                        <!-- ส่วนเนื้อหาหลัก -->
-                        <main role="main" class="flex-grow-1 py-5">
-                            <div class="container">
-                                @RenderBody()
-                            </div>
-                        </main>
+    <!-- ส่วนเนื้อหาหลัก -->
+    <main role="main" class="flex-grow-1 py-4">
+        <div class="container">
+            @RenderBody()
+        </div>
+    </main>
 
-                        <!-- Footer -->
-                        <footer class="bg-dark text-light pt-5 pb-3 mt-auto">
-                            <div class="container">
-                                <div class="row">
-                                    <!-- ข้อมูลร้าน -->
-                                    <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
-                                        <h5 class="text-uppercase text-white fw-bold mb-4">
-                                            <i class="fa-solid fa-shirt me-2"></i>เสื้อผ้า.com
-                                        </h5>
-                                        <p class="text-secondary lh-lg">
-                                            ศูนย์รวมแฟชั่นเสื้อผ้าผู้ชายและผู้หญิงที่ทันสมัยที่สุด ช้อปง่าย ส่งไว มั่นใจได้ของแท้ 100%
-                                            พร้อมโปรโมชั่นพิเศษทุกสัปดาห์
-                                        </p>
-                                        <div class="mt-4">
-                                            <a href="#"
-                                               class="btn btn-outline-secondary rounded-circle d-inline-flex align-items-center justify-content-center me-1"
-                                               style="width:38px;height:38px;" role="button"><i class="fab fa-facebook-f"></i></a>
-                                            <a href="#"
-                                               class="btn btn-outline-secondary rounded-circle d-inline-flex align-items-center justify-content-center me-1"
-                                               style="width:38px;height:38px;" role="button"><i class="fab fa-twitter"></i></a>
-                                            <a href="#"
-                                               class="btn btn-outline-secondary rounded-circle d-inline-flex align-items-center justify-content-center me-1"
-                                               style="width:38px;height:38px;" role="button"><i class="fab fa-instagram"></i></a>
-                                        </div>
-                                    </div>
+    <!-- Modal: วิธีการสั่งซื้อสินค้า -->
+    <div class="modal fade" id="orderGuideModal" tabindex="-1" aria-labelledby="orderGuideModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title fw-bold" id="orderGuideModalLabel">
+                        <i class="fa-solid fa-circle-info text-primary me-2"></i>วิธีการสั่งซื้อสินค้า
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="d-flex mb-3">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width:36px; height:36px;">
+                            <strong>1</strong>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1">เลือกสินค้าและไซส์</h6>
+                            <p class="text-muted small mb-0">เลือกแบบเสื้อผ้า สี ไซส์ และจำนวนที่ต้องการ แล้วกด "เพิ่มลงตะกร้า"</p>
+                        </div>
+                    </div>
+                    <div class="d-flex mb-3">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width:36px; height:36px;">
+                            <strong>2</strong>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1">ตรวจสอบตะกร้า & ชำระเงิน</h6>
+                            <p class="text-muted small mb-0">กดที่ไอคอนตะกร้าเพื่อตรวจสอบรายการสินค้า กรอกโค้ดส่วนลด และระบุที่อยู่จัดส่ง</p>
+                        </div>
+                    </div>
+                    <div class="d-flex mb-3">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width:36px; height:36px;">
+                            <strong>3</strong>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1">โอนเงิน & แนบสลิป</h6>
+                            <p class="text-muted small mb-0">โอนเงินผ่านพร้อมเพย์/บัญชีธนาคาร แล้วแนบสลิปหลักฐานการโอนเงิน</p>
+                        </div>
+                    </div>
+                    <div class="d-flex">
+                        <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width:36px; height:36px;">
+                            <i class="fa-solid fa-check"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1">รอรับสินค้า</h6>
+                            <p class="text-muted small mb-0">เจ้าหน้าที่ตรวจสอบยอดเงิน แพ็คสินค้า และจัดส่งถึงบ้านพร้อมเลขพัสดุ</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary btn-sm rounded-pill px-4" data-bs-dismiss="modal">เข้าใจแล้ว</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                                    <!-- บริการลูกค้า -->
-                                    <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
-                                        <h5 class="text-uppercase text-white fw-bold mb-4">บริการลูกค้า</h5>
-                                        <ul class="list-unstyled">
-                                            <li class="mb-2"><a href="#"
-                                                                    class="text-secondary text-decoration-none">วิธีการสั่งซื้อสินค้า</a></li>
-                                                <li class="mb-2"><a href="#"
-                                                                        class="text-secondary text-decoration-none">การจัดส่งสินค้าและค่าธรรมเนียม</a></li>
-                                                    <li class="mb-2"><a href="#"
-                                                                            class="text-secondary text-decoration-none">นโยบายการเปลี่ยน/คืนสินค้า</a></li>
-                                                        <li class="mb-2"><a href="#" class="text-secondary text-decoration-none">คำถามที่พบบ่อย
-                                                            (FAQ)</a></li>
-                                                            <li class="mb-2"><a href="#" class="text-secondary text-decoration-none">ตรวจสอบสถานะพัสดุ</a>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
+    <!-- Footer -->
+    <footer class="bg-dark text-light pt-5 pb-3 mt-auto">
+        <div class="container">
+            <div class="row">
+                <!-- ข้อมูลร้าน -->
+                <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
+                    <h5 class="text-uppercase text-white fw-bold mb-4">
+                        <i class="fa-solid fa-shirt me-2"></i>เสื้อผ้า.com
+                    </h5>
+                    <p class="text-secondary lh-lg">
+                        ศูนย์รวมแฟชั่นเสื้อผ้าที่ทันสมัยที่สุด ช้อปง่าย ส่งไว มั่นใจได้ของแท้ 100%
+                        พร้อมโปรโมชั่นพิเศษทุกสัปดาห์
+                    </p>
+                    <div class="mt-4">
+                        <a href="#" class="btn btn-outline-secondary rounded-circle d-inline-flex align-items-center justify-content-center me-1" style="width:38px;height:38px;"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="btn btn-outline-secondary rounded-circle d-inline-flex align-items-center justify-content-center me-1" style="width:38px;height:38px;"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="btn btn-outline-secondary rounded-circle d-inline-flex align-items-center justify-content-center me-1" style="width:38px;height:38px;"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
 
-                                                    <!-- ติดต่อเรา -->
-                                                    <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
-                                                        <h5 class="text-uppercase text-white fw-bold mb-4">ติดต่อเรา</h5>
-                                                        <ul class="list-unstyled text-secondary">
-                                                            <li class="mb-3"><i class="fas fa-map-marker-alt me-3"></i>123 ถนนแฟชั่น เขตสไตล์ กรุงเทพฯ 10110
-                                                            </li>
-                                                            <li class="mb-3"><i class="fas fa-phone me-3"></i>02-123-4567</li>
-                                                            <li class="mb-3"><i class="fas fa-envelope me-3"></i>support@seapha.com</li>
-                                                            <li class="mb-3"><i class="fas fa-clock me-3"></i>จันทร์ - เสาร์ (09:00 - 18:00 น.)</li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
+                <!-- บริการลูกค้า -->
+                <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
+                    <h5 class="text-uppercase text-white fw-bold mb-4">บริการลูกค้า</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#orderGuideModal" class="text-secondary text-decoration-none">วิธีการสั่งซื้อสินค้า</a></li>
+                        <li class="mb-2"><a href="/#promotions" class="text-secondary text-decoration-none">โปรโมชั่นและส่วนลด</a></li>
+                        <li class="mb-2"><a href="#" class="text-secondary text-decoration-none">การจัดส่งสินค้าและค่าธรรมเนียม</a></li>
+                        <li class="mb-2"><a href="#" class="text-secondary text-decoration-none">นโยบายการเปลี่ยน/คืนสินค้า</a></li>
+                        <li class="mb-2"><a asp-controller="Cart" asp-action="MyOrders" class="text-secondary text-decoration-none">ตรวจสอบสถานะพัสดุ</a></li>
+                    </ul>
+                </div>
 
-                                                <!-- ลิขสิทธิ์ -->
-                                                <div class="text-center text-secondary border-top border-secondary pt-3 mt-4 small">
-                                                    &copy; 2026 - เสื้อผ้า.com - All Rights Reserved.
-                                                </div>
-                                            </div>
-                                        </footer>
+                <!-- ติดต่อเรา -->
+                <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
+                    <h5 class="text-uppercase text-white fw-bold mb-4">ติดต่อเรา</h5>
+                    <ul class="list-unstyled text-secondary">
+                        <li class="mb-3"><i class="fas fa-map-marker-alt me-3"></i>123 ถนนแฟชั่น เขตสไตล์ กรุงเทพฯ 10110</li>
+                        <li class="mb-3"><i class="fas fa-phone me-3"></i>02-123-4567</li>
+                        <li class="mb-3"><i class="fas fa-envelope me-3"></i>support@seapha.com</li>
+                        <li class="mb-3"><i class="fas fa-clock me-3"></i>จันทร์ - เสาร์ (09:00 - 18:00 น.)</li>
+                    </ul>
+                </div>
+            </div>
 
-                                        <script src="~/lib/jquery/dist/jquery.min.js"></script>
-                                        <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-                                        <script src="~/js/site.js" asp-append-version="true"></script>
-                                        @await RenderSectionAsync("Scripts", required: false)
-                                    </body>
+            <!-- ลิขสิทธิ์ -->
+            <div class="text-center text-secondary border-top border-secondary pt-3 mt-4 small">
+                &copy; 2026 - เสื้อผ้า.com - All Rights Reserved.
+            </div>
+        </div>
+    </footer>
 
-                                </html>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+
+</html>

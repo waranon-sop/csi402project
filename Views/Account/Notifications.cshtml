@@ -1,0 +1,50 @@
+@model List<waranon_csi402.Models.Notification>
+@{
+    ViewData["Title"] = "การแจ้งเตือน";
+
+    // ใช้ Layout ตามบทบาทของผู้ใช้
+    string role = TempData.Peek("Role")?.ToString() ?? "Customer";
+    if (role == "Admin") Layout = "_LayoutAdmin";
+    else if (role == "Staff") Layout = "_LayoutStaff";
+    else if (role == "Accounting") Layout = "_LayoutAccounting";
+    else Layout = "_Layout2";
+
+    var unreadIds = ViewBag.UnreadIds as List<int> ?? new List<int>();
+}
+
+<div class="container py-4" style="max-width: 820px;">
+    <h4 class="fw-bold mb-1"><i class="fa-solid fa-bell text-warning me-2"></i>การแจ้งเตือน</h4>
+    <p class="text-muted small mb-4">แสดง 50 รายการล่าสุด</p>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="fa-regular fa-bell-slash fa-3x opacity-50 mb-3"></i>
+            <p class="mb-0">ยังไม่มีการแจ้งเตือน</p>
+        </div>
+    }
+    else
+    {
+        <div class="list-group shadow-sm rounded-4">
+            @foreach (var n in Model)
+            {
+                bool isNew = unreadIds.Contains(n.NotificationId);
+                <div class="list-group-item py-3 @(isNew ? "bg-warning-subtle" : "")">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="fw-semibold text-dark">
+                                @n.Title
+                                @if (isNew)
+                                {
+                                    <span class="badge bg-danger ms-1" style="font-size: 0.65rem;">ใหม่</span>
+                                }
+                            </div>
+                            <div class="small text-muted">@n.Message</div>
+                        </div>
+                        <small class="text-muted text-nowrap ms-3">@n.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

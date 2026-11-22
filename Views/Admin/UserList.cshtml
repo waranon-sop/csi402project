@@ -1,52 +1,150 @@
 @model IEnumerable<waranon_csi402.Models.User>
 
 @{
-    ViewData["Title"] = "User List";
+    ViewData["Title"] = "จัดการผู้ใช้งาน";
     Layout = "_LayoutAdmin";
 }
 
-<div class="container mt-4">
-    
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>รายชื่อผู้ใช้งานทั้งหมด (User List)</h3>
-        <a asp-action="AddUser" asp-controller="Admin" class="btn btn-primary">เพิ่มผู้ใช้งาน</a>
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div>
+        <h3 class="fw-bold mb-1 text-dark">
+            <i class="fa-solid fa-users-gear text-success me-2"></i>จัดการผู้ใช้งาน
+        </h3>
+        <p class="text-muted small mb-0">รายชื่อลูกค้าและเจ้าหน้าที่ทั้งหมดในระบบ เสื้อผ้า.com</p>
     </div>
-
-    @if (ViewBag.Status != null)
-    {
-        <div class="alert alert-info alert-dismissible fade show" role="alert">
-            @ViewBag.Status
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-
-    <table class="table table-bordered table-striped table-hover">
-        <thead>
-            <tr class="table-dark">
-                <th>#</th>
-                <th>ชื่อ - นามสกุล</th>
-                <th>อีเมล</th>
-                <th>เบอร์โทรศัพท์</th>
-                <th>บทบาท (Role)</th>
-                <th>จัดการ</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var user in Model)
-            {
-                <tr>
-                    <td>@user.UserId</td>
-                    <td>@user.FirstName @user.LastName</td>
-                    <td>@user.Email</td>
-                    <td>@user.PhoneNumber</td>
-                    <td>@user.Role</td>
-                    <td>
-                        <a asp-action="EditUser" asp-controller="Admin" asp-route-UserId="@user.UserId" class="btn btn-sm btn-warning">แก้ไข</a>
-                        <a asp-action="DeleteUser" asp-controller="Admin" asp-route-UserId="@user.UserId" class="btn btn-sm btn-danger" onclick="return confirm('ยืนยันว่าต้องการลบผู้ใช้งาน @user.FirstName หรือไม่?');">ลบ</a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-    
+    <a asp-action="AddUser" asp-controller="Admin" class="btn btn-primary rounded-pill px-4 shadow-sm fw-medium">
+        <i class="fa-solid fa-user-plus me-1"></i> เพิ่มผู้ใช้งานใหม่
+    </a>
 </div>
+
+@if (ViewBag.Status != null)
+{
+    <div class="alert alert-info alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
+        <i class="fa-solid fa-circle-info me-2"></i>@ViewBag.Status
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="card card-custom overflow-hidden">
+    <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center border-bottom">
+        <span class="fw-bold text-dark">รายชื่อสมาชิกทั้งหมด (@Model.Count() คน)</span>
+        <div class="input-group input-group-sm" style="max-width: 250px;">
+            <span class="input-group-text bg-light border-0"><i class="fa-solid fa-search text-muted"></i></span>
+            <input type="text" id="userSearchInput" class="form-control bg-light border-0" placeholder="ค้นหาชื่อ หรืออีเมล..." onkeyup="filterUsers()" />
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-custom table-hover align-middle mb-0" id="userTable">
+                <thead>
+                    <tr>
+                        <th style="width: 70px;">รหัส</th>
+                        <th>ผู้ใช้งาน</th>
+                        <th>อีเมล</th>
+                        <th>เบอร์โทรศัพท์</th>
+                        <th>บทบาท</th>
+                        <th class="text-center" style="width: 180px;">จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-users fa-3x mb-3 d-block opacity-50"></i>
+                                ไม่พบรายชื่อผู้ใช้งาน
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var user in Model)
+                        {
+                            var initial = !string.IsNullOrEmpty(user.FirstName) ? user.FirstName.Substring(0, 1).ToUpper() : "U";
+                            <tr class="user-row">
+                                <td class="fw-bold text-secondary">#@user.UserId</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle bg-primary bg-opacity-10 text-primary me-3 flex-shrink-0">
+                                            @initial
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark user-name">@user.FirstName @user.LastName</div>
+                                            <small class="text-muted">สร้างเมื่อ: @user.CreatedAt.ToString("dd/MM/yyyy")</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="user-email text-dark">@user.Email</span>
+                                </td>
+                                <td>
+                                    <span class="text-muted">@(string.IsNullOrEmpty(user.PhoneNumber) ? "-" : user.PhoneNumber)</span>
+                                </td>
+                                <td>
+                                    @if (user.Role == "Admin")
+                                    {
+                                        <span class="badge badge-soft-danger px-3 py-1 rounded-pill">
+                                            <i class="fa-solid fa-shield-halved me-1"></i>ผู้ดูแลระบบ (Admin)
+                                        </span>
+                                    }
+                                    else if (user.Role == "Staff")
+                                    {
+                                        <span class="badge badge-soft-warning px-3 py-1 rounded-pill">
+                                            <i class="fa-solid fa-boxes-packing me-1"></i>พนักงาน (Staff)
+                                        </span>
+                                    }
+                                    else if (user.Role == "Accounting")
+                                    {
+                                        <span class="badge badge-soft-success px-3 py-1 rounded-pill">
+                                            <i class="fa-solid fa-file-invoice-dollar me-1"></i>ฝ่ายการเงิน (Accounting)
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-soft-primary px-3 py-1 rounded-pill">
+                                            <i class="fa-solid fa-user me-1"></i>ลูกค้าทั่วไป (Customer)
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center gap-1">
+                                        <a asp-action="EditUser" asp-controller="Admin" asp-route-UserId="@user.UserId" 
+                                           class="btn btn-sm btn-outline-warning rounded-pill px-3" title="แก้ไข">
+                                            <i class="fa-solid fa-pen me-1"></i>แก้ไข
+                                        </a>
+                                        <form method="post" asp-action="DeleteUser" asp-controller="Admin" asp-route-UserId="@user.UserId" class="d-inline"
+                                              onsubmit="return confirm('ยืนยันว่าต้องการลบผู้ใช้งาน @user.FirstName @user.LastName หรือไม่?');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3" title="ลบ">
+                                                <i class="fa-solid fa-trash me-1"></i>ลบ
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function filterUsers() {
+            const input = document.getElementById('userSearchInput');
+            const filter = input.value.toLowerCase();
+            const rows = document.querySelectorAll('.user-row');
+
+            rows.forEach(row => {
+                const name = row.querySelector('.user-name').textContent.toLowerCase();
+                const email = row.querySelector('.user-email').textContent.toLowerCase();
+                if (name.includes(filter) || email.includes(filter)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+    </script>
+}

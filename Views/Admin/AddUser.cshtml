@@ -1,58 +1,84 @@
 @model waranon_csi402.ViewModels.RegisterViewModel
 
 @{
-    ViewData["Title"] = "Add User";
+    ViewData["Title"] = "เพิ่มผู้ใช้งานใหม่";
     Layout = "_LayoutAdmin";
 }
 
-<div class="container mt-4">
-    <div class="card">
-        <h3 class="card-header bg-primary text-white">เพิ่มผู้ใช้งาน (Add User)</h3>
-        <div class="card-body">
-            
-            <form asp-action="AddUser" asp-controller="Admin" method="post">
-                
-                <div class="mb-3">
-                    <label class="form-label">ชื่อ (First Name)</label>
-                    <input type="text" name="FirstName" class="form-control" />
-                </div>
-                
-                <div class="mb-3">
-                    <label class="form-label">นามสกุล (Last Name)</label>
-                    <input type="text" name="LastName" class="form-control" />
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">อีเมล (Email)</label>
-                    <input type="email" name="Email" class="form-control" />
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">เบอร์โทรศัพท์ (Phone)</label>
-                    <input type="text" name="PhoneNumber" class="form-control" />
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">รหัสผ่าน (Password)</label>
-                    <input type="password" name="Password" class="form-control" />
-                </div>
-                
-                <div class="mb-3">
-                    <label class="form-label">บทบาท (Role)</label>
-                    <select name="Role" class="form-select">
-                        <option value="Customer">ผู้ใช้ทั่วไป (Customer)</option>
-                        <option value="Admin">ผู้ดูแลระบบ (Admin)</option>
-                        <option value="Staff">เจ้าหน้าที่ (Staff)</option>
-                    </select>
-                </div>
-
-                <button type="submit" class="btn btn-primary">บันทึก</button>
-                <a asp-action="UserList" asp-controller="Admin" class="btn btn-secondary">ยกเลิก</a>
-
-            </form>
-
-            <p class="text-danger">@ViewBag.Status</p>
-
-        </div>
+<div class="d-flex justify-content-between align-items-center mb-4" style="max-width: 720px; margin: 0 auto;">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a asp-action="UserList" class="text-decoration-none">จัดการผู้ใช้งาน</a></li>
+                <li class="breadcrumb-item active" aria-current="page">เพิ่มผู้ใช้งานใหม่</li>
+            </ol>
+        </nav>
+        <h3 class="fw-bold mb-0 text-dark">
+            <i class="fa-solid fa-user-plus text-primary me-2"></i>เพิ่มผู้ใช้งานใหม่ (Add User)
+        </h3>
     </div>
+    <a asp-action="UserList" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+        <i class="fa-solid fa-arrow-left me-1"></i>ย้อนกลับ
+    </a>
+</div>
+
+<div class="card card-custom p-4 shadow-sm" style="max-width: 720px; margin: 0 auto;">
+    @if (ViewBag.Status != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show border-0 mb-4" role="alert">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>@ViewBag.Status
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <form asp-action="AddUser" asp-controller="Admin" method="post">
+        @Html.AntiForgeryToken()
+
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark">ชื่อ (First Name) <span class="text-danger">*</span></label>
+                <input type="text" name="FirstName" value="@Model?.FirstName" class="form-control" required />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark">นามสกุล (Last Name) <span class="text-danger">*</span></label>
+                <input type="text" name="LastName" value="@Model?.LastName" class="form-control" required />
+            </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark">อีเมล (Email) <span class="text-danger">*</span></label>
+                <input type="email" name="Email" value="@Model?.Email" class="form-control" required />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark">เบอร์โทรศัพท์ (Phone)</label>
+                <input type="text" name="PhoneNumber" value="@Model?.PhoneNumber" class="form-control" placeholder="08x-xxx-xxxx" />
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark">รหัสผ่าน (Password) <span class="text-danger">*</span></label>
+                <input type="password" name="Password" class="form-control" required />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark">บทบาทผู้ใช้งาน (Role)</label>
+                <select name="Role" class="form-select">
+                    <option value="Customer" selected="@(Model?.Role == "Customer" || Model?.Role == null)">ลูกค้าทั่วไป (Customer)</option>
+                    <option value="Admin" selected="@(Model?.Role == "Admin")">ผู้ดูแลระบบ (Admin)</option>
+                    <option value="Staff" selected="@(Model?.Role == "Staff")">เจ้าหน้าที่จัดการคลัง (Staff)</option>
+                    <option value="Accounting" selected="@(Model?.Role == "Accounting")">เจ้าหน้าที่ฝ่ายการเงิน (Accounting)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 pt-2 border-top">
+            <button type="submit" class="btn btn-primary px-4 py-2 rounded-pill fw-bold shadow-sm">
+                <i class="fa-solid fa-floppy-disk me-1"></i> บันทึกผู้ใช้งาน
+            </button>
+            <a asp-action="UserList" class="btn btn-outline-secondary px-4 py-2 rounded-pill">
+                ยกเลิก
+            </a>
+        </div>
+    </form>
 </div>

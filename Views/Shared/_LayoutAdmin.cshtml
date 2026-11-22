@@ -4,28 +4,194 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewData["Title"] - Admin Panel</title>
+    <title>@ViewData["Title"] - เสื้อผ้า.com Admin</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/waranon_csi402.styles.css" asp-append-version="true" />
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Google Fonts: Prompt -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --admin-sidebar-bg: #0f172a;
+            --admin-sidebar-hover: #1e293b;
+            --admin-sidebar-active: #3b82f6;
+            --admin-body-bg: #f8fafc;
+        }
+
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: var(--admin-body-bg);
+            color: #334155;
+        }
+
+        .admin-sidebar {
+            background-color: var(--admin-sidebar-bg);
+            border-right: 1px solid #1e293b;
+        }
+
+        .admin-sidebar .nav-link {
+            color: #94a3b8;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .admin-sidebar .nav-link:hover {
+            color: #ffffff;
+            background-color: var(--admin-sidebar-hover);
+            transform: translateX(3px);
+        }
+
+        .admin-sidebar .nav-link.active {
+            color: #ffffff;
+            background-color: var(--admin-sidebar-active);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+        }
+
+        .admin-sidebar .nav-link i {
+            width: 22px;
+            font-size: 1.1rem;
+        }
+
+        .sidebar-section-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #64748b;
+            font-weight: 700;
+            padding: 12px 14px 4px 14px;
+        }
+
+        .card-custom {
+            border: 0;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            background-color: #ffffff;
+        }
+
+        .card-custom:hover {
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .table-custom {
+            margin-bottom: 0;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .table-custom thead th {
+            background-color: #f1f5f9;
+            color: #1e293b;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border-bottom: 2px solid #cbd5e1;
+            padding: 12px 16px;
+            white-space: nowrap;
+        }
+
+        .table-custom tbody tr {
+            transition: background-color 0.15s ease;
+        }
+
+        .table-custom tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .table-custom tbody td {
+            padding: 14px 16px;
+            vertical-align: middle;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        /* ป้ายสถานะ (Badges) แบบชัดเจน อ่านง่าย ไม่จาง */
+        .badge-soft-primary {
+            background-color: #e0edff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+            font-weight: 600;
+        }
+
+        .badge-soft-success {
+            background-color: #dcfce7;
+            color: #15803d;
+            border: 1px solid #86efac;
+            font-weight: 600;
+        }
+
+        .badge-soft-warning {
+            background-color: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fcd34d;
+            font-weight: 600;
+        }
+
+        .badge-soft-danger {
+            background-color: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fca5a5;
+            font-weight: 600;
+        }
+
+        .badge-soft-info {
+            background-color: #e0f2fe;
+            color: #0369a1;
+            border: 1px solid #7dd3fc;
+            font-weight: 600;
+        }
+
+        .badge-soft-secondary {
+            background-color: #f1f5f9;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+            font-weight: 600;
+        }
+
+        .avatar-circle {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
     @RenderSection("Styles", required: false)
 </head>
 
-<body style="font-family: 'Prompt', sans-serif;">
+<body>
 
     <div class="d-flex min-vh-100">
 
-        <!-- Sidebar (Desktop) — ซ่อนบนมือถือ -->
-        <nav class="d-none d-lg-flex flex-column bg-dark text-white p-3" style="width: 260px;">
+        <!-- Sidebar Desktop (Fix 260px) -->
+        <nav class="admin-sidebar d-none d-lg-flex flex-column text-white p-3" style="width: 270px; min-height: 100vh;">
             <partial name="_SidebarAdmin" />
         </nav>
 
-        <!-- Sidebar (Mobile) — Offcanvas -->
-        <div class="offcanvas offcanvas-start bg-dark text-white" tabindex="-1" id="sidebarOffcanvas">
-            <div class="offcanvas-header border-bottom border-secondary">
-                <h5 class="offcanvas-title text-white">เมนู</h5>
+        <!-- Sidebar Mobile (Offcanvas) -->
+        <div class="offcanvas offcanvas-start admin-sidebar text-white" tabindex="-1" id="sidebarOffcanvas" style="width: 280px;">
+            <div class="offcanvas-header border-bottom border-secondary border-opacity-50">
+                <h5 class="offcanvas-title text-white fw-bold d-flex align-items-center">
+                    <span class="bg-primary text-white rounded p-1 me-2 d-inline-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
+                        <i class="fa-solid fa-shirt"></i>
+                    </span>
+                    เสื้อผ้า.com
+                </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
             </div>
             <div class="offcanvas-body d-flex flex-column p-3">
@@ -33,42 +199,85 @@
             </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="flex-grow-1 d-flex flex-column">
-            <!-- Top Navbar -->
-            <nav class="navbar navbar-light bg-white shadow-sm px-3 px-lg-4 py-2">
-                <!-- ปุ่ม Toggle Sidebar (มือถือ) -->
-                <button class="btn btn-outline-dark d-lg-none me-2" type="button" data-bs-toggle="offcanvas"
-                        data-bs-target="#sidebarOffcanvas">
+        <!-- Main Content Area -->
+        <div class="flex-grow-1 d-flex flex-column" style="min-width: 0;">
+
+            <!-- Top Header Navbar -->
+            <nav class="navbar navbar-expand navbar-light bg-white border-bottom px-3 px-lg-4 py-2 sticky-top shadow-sm">
+                <!-- Hamburger Button for Mobile -->
+                <button class="btn btn-outline-secondary btn-sm d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas">
                     <i class="fa-solid fa-bars"></i>
                 </button>
-                <span class="navbar-text fw-semibold text-dark">
-                    <i class="fa-solid fa-shield-halved text-primary me-2"></i>ระบบจัดการ (Admin)
-                </span>
-                <div class="d-flex align-items-center">
-                    <a class="text-dark me-3 position-relative" href="#">
-                        <i class="fa-solid fa-bell"></i>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                              style="font-size: 0.6rem;">5</span>
+
+                <!-- Page Header Breadcrumb / Brand Text -->
+                <div class="d-flex align-items-center me-auto">
+                    <span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1 rounded me-2 d-none d-sm-inline-block small fw-bold">
+                        <i class="fa-solid fa-shield-halved me-1"></i>ADMIN
+                    </span>
+                    <span class="fw-semibold text-dark">
+                        ระบบจัดการร้านค้า เสื้อผ้า.com
+                    </span>
+                </div>
+
+                <!-- Right Topbar Items -->
+                <div class="d-flex align-items-center gap-2">
+                    <!-- ลิงก์หน้าร้าน (Storefront) -->
+                    <a asp-controller="Home" asp-action="Index" target="_blank" 
+                       class="btn btn-sm btn-outline-primary rounded-pill px-3 d-flex align-items-center" title="เปิดดูหน้าร้านในแท็บใหม่">
+                        <i class="fa-solid fa-store me-1"></i>
+                        <span class="d-none d-md-inline">ดูหน้าร้าน</span>
                     </a>
-                    <a class="text-decoration-none text-dark small d-none d-sm-inline" asp-area="" asp-controller="Home"
-                       asp-action="Index">
-                        <i class="fa-solid fa-store me-1"></i>ไปหน้าร้าน
-                    </a>
+
+                    <!-- User Dropdown Menu -->
+                    <div class="dropdown ms-1">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle text-dark p-1 rounded-pill pe-2" data-bs-toggle="dropdown">
+                            <div class="avatar-circle bg-primary text-white me-2">
+                                @((TempData.Peek("Name")?.ToString()?.Length > 0 ? TempData.Peek("Name")?.ToString()!.Substring(0, 1) : "A").ToUpper())
+                            </div>
+                            <div class="d-none d-md-block text-start" style="line-height: 1.2;">
+                                <div class="fw-bold small">@(TempData.Peek("Name") ?? "Admin")</div>
+                                <span class="badge bg-danger bg-opacity-75" style="font-size: 0.65rem;">@(TempData.Peek("Role") ?? "Admin")</span>
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                            <li class="dropdown-header small">เข้าสู่ระบบในชื่อ: <strong>@(TempData.Peek("LoginEmail") ?? "admin@seapha.com")</strong></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item py-2" asp-controller="Home" asp-action="Index">
+                                    <i class="fa-solid fa-store me-2 text-primary"></i>ไปที่หน้าร้าน
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item py-2" asp-controller="Admin" asp-action="UserList">
+                                    <i class="fa-solid fa-users-gear me-2 text-secondary"></i>จัดการผู้ใช้งาน
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item py-2 text-danger" asp-controller="Account" asp-action="Login">
+                                    <i class="fa-solid fa-right-from-bracket me-2"></i>ออกจากระบบ
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </nav>
 
-            <!-- Page Content -->
-            <main class="flex-grow-1 p-3 p-lg-4 bg-light">
+            <!-- Page Body Content -->
+            <main class="flex-grow-1 p-3 p-lg-4">
                 @RenderBody()
             </main>
 
-            <!-- Footer -->
-            <footer class="bg-white border-top text-center py-2 small text-muted">
-                &copy; 2026 - เสื้อผ้า.com - Admin Panel
+            <!-- Admin Footer -->
+            <footer class="bg-white border-top text-center py-3 small text-muted">
+                <div class="container-fluid d-flex flex-wrap justify-content-between align-items-center px-4">
+                    <span>&copy; 2026 - <strong>เสื้อผ้า.com</strong> All rights reserved.</span>
+                    <span class="text-secondary">Admin Management System v2.0 • CSI402 Project</span>
+                </div>
             </footer>
         </div>
     </div>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

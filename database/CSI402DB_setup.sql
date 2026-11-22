@@ -197,4 +197,26 @@ CREATE TABLE Notifications (
     FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+-- TABLE 15 : PromotionProducts (สินค้าที่ร้านกำหนดให้ร่วมโปร P4 จับคู่ 2 ชิ้น)
+CREATE TABLE PromotionProducts (
+    PromotionID INT NOT NULL,
+    ProductID   INT NOT NULL,
+    PRIMARY KEY (PromotionID, ProductID),
+    FOREIGN KEY (PromotionID) REFERENCES Promotions(PromotionID) ON DELETE CASCADE,
+    FOREIGN KEY (ProductID)   REFERENCES Products(ProductID)     ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- TABLE 16 : Banners (แบนเนอร์หน้าร้าน จัดการโดย Admin)
+CREATE TABLE Banners (
+    BannerID  INT          NOT NULL AUTO_INCREMENT,
+    Title     VARCHAR(200) NOT NULL,
+    Subtitle  VARCHAR(300) NULL,
+    ImageURL  VARCHAR(500) NOT NULL,
+    LinkURL   VARCHAR(500) NULL,
+    SortOrder INT          NOT NULL DEFAULT 0,
+    IsActive  TINYINT(1)   NOT NULL DEFAULT 1,
+    CreatedAt DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (BannerID)
+) ENGINE=InnoDB;
+
 SHOW TABLES;

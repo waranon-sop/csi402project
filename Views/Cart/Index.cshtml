@@ -1,0 +1,233 @@
+@model List<waranon_csi402.Models.Cartitem>
+@{
+    Layout = "_Layout2";
+    ViewData["Title"] = "ตะกร้าสินค้าของฉัน";
+
+    decimal subtotal = ViewBag.Subtotal ?? 0;
+    decimal discountAmt = ViewBag.DiscountAmt ?? 0;
+    string discountDesc = ViewBag.DiscountDesc ?? "";
+    decimal shippingFee = ViewBag.ShippingFee ?? 0;
+    decimal grandTotal = ViewBag.GrandTotal ?? 0;
+    string? couponCode = ViewBag.CouponCode;
+}
+
+<div class="container py-4">
+    <div class="d-flex align-items-center mb-4">
+        <h3 class="fw-bold mb-0 me-auto">
+            <i class="fa-solid fa-cart-shopping text-primary me-2"></i>ตะกร้าสินค้า
+            <span class="fs-6 text-muted fw-normal ms-2">(@Model.Sum(i => i.Quantity) ชิ้น)</span>
+        </h3>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary btn-sm rounded-pill">
+            <i class="fa-solid fa-arrow-left me-1"></i>เลือกซื้อสินค้าต่อ
+        </a>
+    </div>
+
+    @if (ViewBag.Status != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-3 mb-4 shadow-sm" role="alert">
+            <i class="fa-solid fa-circle-check me-2"></i>@ViewBag.Status
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4 shadow-sm" role="alert">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>@ViewBag.Error
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="card shadow-sm border-0 rounded-4 text-center py-5 my-4">
+            <div class="card-body">
+                <div class="mb-4">
+                    <i class="fa-solid fa-cart-arrow-down fa-5x text-muted opacity-50"></i>
+                </div>
+                <h4 class="fw-bold text-dark">ตะกร้าของคุณยังว่างอยู่</h4>
+                <p class="text-secondary mb-4">ค้นหาเสื้อผ้าแฟชั่นและโปรโมชั่นสุดคุ้ม แล้วเริ่มช้อปได้เลย!</p>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-primary rounded-pill px-5 py-2 fw-semibold">
+                    <i class="fa-solid fa-shirt me-2"></i>ไปเลือกซื้อสินค้า
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            <!-- คอลัมน์ซ้าย: รายการสินค้าในตะกร้า -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-3">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <div class="row fw-semibold text-muted small text-uppercase">
+                            <div class="col-6">สินค้า</div>
+                            <div class="col-2 text-center">ราคา</div>
+                            <div class="col-2 text-center">จำนวน</div>
+                            <div class="col-2 text-end">รวม</div>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        @foreach (var item in Model)
+                        {
+                            var unitPrice = item.Variant.Product.BasePrice + item.Variant.ExtraPrice;
+                            var lineTotal = unitPrice * item.Quantity;
+
+                            <div class="p-3 border-bottom d-flex flex-wrap align-items-center">
+                                <!-- สินค้า & รูปภาพ -->
+                                <div class="col-12 col-md-6 d-flex align-items-center mb-3 mb-md-0">
+                                    <img src="@(string.IsNullOrEmpty(item.Variant.Product.ImageUrl) ? "https://placehold.co/100x120?text=Clothes" : item.Variant.Product.ImageUrl)" 
+                                         alt="@item.Variant.Product.ProductName" 
+                                         class="rounded-3 me-3 object-fit-cover shadow-sm"
+                                         style="width: 70px; height: 85px;" />
+                                    <div>
+                                        <a asp-controller="Home" asp-action="ProductDetail" asp-route-id="@item.Variant.ProductId"
+                                           class="fw-bold text-dark text-decoration-none d-block mb-1">
+                                            @item.Variant.Product.ProductName
+                                        </a>
+                                        <div class="small text-muted mb-1">
+                                            <span class="badge bg-light text-dark border me-1">สี: @item.Variant.Color</span>
+                                            <span class="badge bg-light text-dark border">ไซส์: @item.Variant.Size</span>
+                                        </div>
+                                        @if (item.Variant.Stock <= 5)
+                                        {
+                                            <small class="text-danger"><i class="fa-solid fa-fire me-1"></i>เหลือเพียง @item.Variant.Stock ชิ้น!</small>
+                                        }
+                                    </div>
+                                </div>
+
+                                <!-- ราคาต่อหน่วย -->
+                                <div class="col-4 col-md-2 text-md-center">
+                                    <span class="d-md-none text-muted small">ราคา: </span>
+                                    <span class="fw-semibold">฿@unitPrice.ToString("N0")</span>
+                                </div>
+
+                                <!-- ปรับจำนวน -->
+                                <div class="col-5 col-md-2 text-center">
+                                    <div class="input-group input-group-sm justify-content-center">
+                                        <form method="post" asp-action="UpdateQuantity" class="d-inline">
+                                            <input type="hidden" name="cartItemId" value="@item.CartItemId" />
+                                            <input type="hidden" name="quantity" value="@(item.Quantity - 1)" />
+                                            <button type="submit" class="btn btn-outline-secondary rounded-start" @(item.Quantity <= 1 ? "disabled" : "")>-</button>
+                                        </form>
+
+                                        <span class="input-group-text bg-white px-3 fw-bold border-start-0 border-end-0">@item.Quantity</span>
+
+                                        <form method="post" asp-action="UpdateQuantity" class="d-inline">
+                                            <input type="hidden" name="cartItemId" value="@item.CartItemId" />
+                                            <input type="hidden" name="quantity" value="@(item.Quantity + 1)" />
+                                            <button type="submit" class="btn btn-outline-secondary rounded-end" @(item.Quantity >= item.Variant.Stock ? "disabled" : "")>+</button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <!-- ราคารวมรายการ & ปุ่มลบ -->
+                                <div class="col-3 col-md-2 text-end">
+                                    <div class="fw-bold text-primary mb-1">฿@lineTotal.ToString("N0")</div>
+                                    <form method="post" asp-action="RemoveFromCart" class="d-inline" onsubmit="return confirm('ต้องการลบสินค้านี้ออกจากตะกร้า?');">
+                                        <input type="hidden" name="cartItemId" value="@item.CartItemId" />
+                                        <button type="submit" class="btn btn-link text-danger p-0 small text-decoration-none">
+                                            <i class="fa-solid fa-trash-can me-1"></i>ลบ
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- นโยบายการสั่งซื้อ -->
+                <div class="row g-2 text-muted small">
+                    <div class="col-sm-4 d-flex align-items-center">
+                        <i class="fa-solid fa-truck-fast text-success fs-5 me-2"></i>
+                        <span>จัดส่งฟรีเมื่อช้อปครบ ฿500</span>
+                    </div>
+                    <div class="col-sm-4 d-flex align-items-center">
+                        <i class="fa-solid fa-rotate-left text-primary fs-5 me-2"></i>
+                        <span>เปลี่ยนคืนสินค้าได้ภายใน 7 วัน</span>
+                    </div>
+                    <div class="col-sm-4 d-flex align-items-center">
+                        <i class="fa-solid fa-shield-check text-info fs-5 me-2"></i>
+                        <span>รับประกันสินค้าคุณภาพแท้ 100%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- คอลัมน์ขวา: สรุปคำสั่งซื้อ & คูปอง -->
+            <div class="col-lg-4">
+                <div class="card shadow-sm border-0 rounded-4 p-4 sticky-top" style="top: 20px;">
+                    <h5 class="fw-bold mb-3 border-bottom pb-2">สรุปคำสั่งซื้อ</h5>
+
+                    <!-- กรอกคูปอง -->
+                    <form method="get" asp-action="Index" class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">โค้ดคูปองส่วนลด:</label>
+                        <div class="input-group">
+                            <input type="text" name="couponCode" class="form-control text-uppercase" 
+                                   placeholder="เช่น NEW50, SAVE10" value="@couponCode" />
+                            <button type="submit" class="btn btn-outline-primary">ใช้โค้ด</button>
+                        </div>
+                        @if (!string.IsNullOrEmpty(ViewBag.CouponMsg as string))
+                        {
+                            bool isValid = ViewBag.IsCouponValid == true;
+                            <div class="mt-2 small @(isValid ? "text-success fw-semibold" : "text-danger")">
+                                <i class="fa-solid @(isValid ? "fa-circle-check" : "fa-circle-exclamation") me-1"></i>@ViewBag.CouponMsg
+                            </div>
+                        }
+                    </form>
+
+                    <!-- รายละเอียดคิดเงิน -->
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">ราคาสินค้ารวม:</span>
+                        <span class="fw-semibold">฿@subtotal.ToString("N0")</span>
+                    </div>
+
+                    @if (discountAmt > 0)
+                    {
+                        <div class="d-flex justify-content-between mb-2 text-success">
+                            <span>
+                                <i class="fa-solid fa-tag me-1"></i>ส่วนลด:
+                                <small class="d-block text-muted" style="font-size: 0.75rem;">@discountDesc</small>
+                            </span>
+                            <span class="fw-bold">-฿@discountAmt.ToString("N0")</span>
+                        </div>
+                    }
+
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-muted">ค่าจัดส่ง:</span>
+                        <span>
+                            @if (shippingFee == 0)
+                            {
+                                <span class="badge bg-success-subtle text-success">ส่งฟรี</span>
+                            }
+                            else
+                            {
+                                <span class="fw-semibold">฿@shippingFee.ToString("N0")</span>
+                            }
+                        </span>
+                    </div>
+
+                    <hr class="my-2" />
+
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <span class="fs-5 fw-bold">ยอดสุทธิ:</span>
+                            <small class="d-block text-muted">(รวมภาษีมูลค่าเพิ่มแล้ว)</small>
+                        </div>
+                        <span class="fs-4 fw-bolder text-primary">฿@grandTotal.ToString("N0")</span>
+                    </div>
+
+                    <!-- ปุ่มไปหน้า Checkout -->
+                    <a asp-action="Checkout" asp-route-couponCode="@couponCode" 
+                       class="btn btn-primary btn-lg rounded-pill w-100 fw-bold shadow-sm mb-2">
+                        <i class="fa-solid fa-shield-heart me-2"></i>ดำเนินการสั่งซื้อ
+                    </a>
+
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-outline-light text-secondary rounded-pill w-100 btn-sm">
+                        เลือกดูสินค้าเพิ่มเติม
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+

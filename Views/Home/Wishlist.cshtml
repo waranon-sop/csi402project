@@ -1,0 +1,85 @@
+@model List<waranon_csi402.Models.Wishlist>
+@{
+    Layout = "_Layout2";
+    ViewData["Title"] = "รายการโปรดของฉัน - Wishlist";
+}
+
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h3 class="fw-bold mb-1 text-dark">
+                <i class="fa-solid fa-heart text-danger me-2"></i>รายการโปรดของฉัน
+            </h3>
+            <p class="text-secondary small mb-0">สินค้าที่คุณถูกใจและบันทึกไว้ (@Model.Count รายการ)</p>
+        </div>
+
+        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="fa-solid fa-arrow-left me-1"></i>เลือกซื้อสินค้าต่อ
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="card shadow-sm border-0 rounded-4 text-center py-5 my-4 bg-white">
+            <div class="card-body">
+                <div class="mb-3">
+                    <i class="fa-regular fa-heart fa-5x text-muted opacity-50"></i>
+                </div>
+                <h4 class="fw-bold text-dark">ยังไม่มีสินค้าในรายการโปรด</h4>
+                <p class="text-secondary small mb-4">กดไอคอนหัวใจ <i class="fa-regular fa-heart text-danger"></i> ในหน้ารายละเอียดสินค้า เพื่อบันทึกสินค้าที่คุณชอบไว้ดูย้อนหลังได้เลย</p>
+                <a asp-action="Index" class="btn btn-primary rounded-pill px-4 fw-semibold">
+                    <i class="fa-solid fa-shirt me-1"></i>ไปเลือกดูสินค้า
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3 g-md-4">
+            @foreach (var w in Model)
+            {
+                var item = w.Product;
+                if (item == null) continue;
+
+                <div class="col">
+                    <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden bg-white">
+                        <div class="position-relative bg-light" style="aspect-ratio: 3 / 4; overflow: hidden;">
+                            <a asp-action="ProductDetail" asp-route-id="@item.ProductId" class="d-block w-100 h-100">
+                                <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "https://placehold.co/400x530?text=Fashion" : item.ImageUrl)" 
+                                     alt="@item.ProductName" class="w-100 h-100 object-fit-cover" />
+                            </a>
+
+                            <form method="post" asp-action="ToggleWishlist" class="position-absolute top-0 end-0 m-2">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="productId" value="@item.ProductId" />
+                                <input type="hidden" name="returnUrl" value="/Home/Wishlist" />
+                                <button type="submit" class="btn btn-sm btn-light text-danger rounded-circle shadow-sm" style="width: 34px; height: 34px;" title="นำออกจากรายการโปรด">
+                                    <i class="fa-solid fa-heart"></i>
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="p-3 d-flex flex-column flex-grow-1">
+                            <span class="badge bg-light text-secondary border small mb-1 align-self-start">
+                                @(item.Category?.CategoryName ?? "แฟชั่น")
+                            </span>
+                            <h6 class="fw-bold mb-2 text-truncate" title="@item.ProductName">
+                                <a asp-action="ProductDetail" asp-route-id="@item.ProductId" class="text-decoration-none text-dark">
+                                    @item.ProductName
+                                </a>
+                            </h6>
+
+                            <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
+                                <span class="fs-5 fw-bold text-danger">฿@item.BasePrice.ToString("N0")</span>
+                                <a asp-action="ProductDetail" asp-route-id="@item.ProductId" class="btn btn-primary btn-sm rounded-pill px-3">
+                                    ดูสินค้า
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+

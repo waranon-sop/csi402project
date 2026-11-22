@@ -1,0 +1,236 @@
+@model IEnumerable<waranon_csi402.Models.Product>
+
+@{
+    ViewData["Title"] = "จัดการสินค้าและสต็อก";
+    Layout = "_LayoutAdmin";
+    var categories = ViewBag.Categories as List<waranon_csi402.Models.Category> ?? new List<waranon_csi402.Models.Category>();
+    int? selectedCategory = ViewBag.SelectedCategory as int?;
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div>
+        <h3 class="fw-bold mb-1 text-dark">
+            <i class="fa-solid fa-boxes-stacked text-primary me-2"></i>จัดการสินค้า & สต็อกสินค้า
+        </h3>
+        <p class="text-muted small mb-0">รายการสินค้าเสื้อผ้า คลังสินค้า และตัวเลือกไซส์/สีทั้งหมด</p>
+    </div>
+    <div>
+        <a asp-action="AddProduct" asp-controller="Admin" class="btn btn-primary rounded-pill px-4 shadow-sm fw-medium">
+            <i class="fa-solid fa-plus me-1"></i> เพิ่มสินค้าใหม่
+        </a>
+    </div>
+</div>
+
+@if (ViewBag.Status != null)
+{
+    <div class="alert alert-info alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
+        <i class="fa-solid fa-circle-info me-2"></i>@ViewBag.Status
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Toolbar ค้นหาและตัวกรองหมวดหมู่ -->
+<div class="card card-custom mb-4">
+    <div class="card-body p-3">
+        <form method="get" asp-action="ProductList" class="row g-2 align-items-center">
+            <div class="col-12 col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-0">
+                        <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                    </span>
+                    <input type="text" id="productSearchInput" class="form-control bg-light border-0" 
+                           placeholder="ค้นหาชื่อสินค้าในหน้านี้..." onkeyup="filterTable()" />
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4">
+                <div class="d-flex align-items-center gap-2">
+                    <label class="small text-muted text-nowrap fw-semibold">หมวดหมู่:</label>
+                    <select name="categoryId" class="form-select bg-light border-0" onchange="this.form.submit()">
+                        <option value="">-- แสดงทุกหมวดหมู่ --</option>
+                        @foreach (var c in categories)
+                        {
+                            <option value="@c.CategoryId" selected="@(selectedCategory == c.CategoryId)">
+                                @c.CategoryName
+                            </option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4 d-flex justify-content-md-end gap-2">
+                @if (selectedCategory.HasValue && selectedCategory > 0)
+                {
+                    <a asp-action="ProductList" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                        <i class="fa-solid fa-rotate-left me-1"></i>ล้างตัวกรอง
+                    </a>
+                }
+                <span class="badge bg-light text-secondary border d-inline-flex align-items-center px-3 rounded-pill">
+                    รวมทั้งสิ้น <strong>@Model.Count()</strong> รายการ
+                </span>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Table Card -->
+<div class="card card-custom overflow-hidden">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-custom table-hover align-middle mb-0" id="productTable">
+                <thead>
+                    <tr>
+                        <th style="width: 70px;">รหัส</th>
+                        <th style="width: 80px;">รูปภาพ</th>
+                        <th>ชื่อสินค้า</th>
+                        <th>หมวดหมู่</th>
+                        <th>ราคาเริ่มต้น</th>
+                        <th>SKU & สต็อกรวม</th>
+                        <th>สถานะ</th>
+                        <th class="text-center" style="width: 260px;">จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-shirt fa-3x mb-3 d-block opacity-50"></i>
+                                <h5>ไม่พบรายการสินค้า</h5>
+                                <p class="small mb-3">คุณสามารถกดปุ่ม "เพิ่มสินค้าใหม่" เพื่อเริ่มต้นวางขายสินค้าได้ทันที</p>
+                                <a asp-action="AddProduct" class="btn btn-primary btn-sm rounded-pill px-4">เพิ่มสินค้าแรก</a>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var item in Model)
+                        {
+                            var totalStock = item.Productvariants?.Sum(v => v.Stock) ?? 0;
+                            var skuCount = item.Productvariants?.Count ?? 0;
+
+                            <tr class="product-row">
+                                <td class="fw-bold text-secondary">#@item.ProductId</td>
+                                <td>
+                                    <div class="rounded-3 overflow-hidden bg-light border d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
+                                        @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                        {
+                                            <img src="@item.ImageUrl" alt="@item.ProductName" style="width: 100%; height: 100%; object-fit: cover;" 
+                                                 onerror="this.style.display='none'; this.nextElementSibling.classList.remove('d-none');" />
+                                            <i class="fa-solid fa-shirt text-muted d-none"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="fa-solid fa-shirt text-muted"></i>
+                                        }
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark product-name">@item.ProductName</div>
+                                    <small class="text-muted text-truncate d-block" style="max-width: 240px;">
+                                        @(string.IsNullOrEmpty(item.Description) ? "ไม่มีรายละเอียด" : item.Description)
+                                    </small>
+                                </td>
+                                <td>
+                                    <span class="badge badge-soft-secondary rounded-pill px-2 py-1">
+                                        @(item.Category?.CategoryName ?? "-")
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="fw-bold text-dark fs-6">฿@item.BasePrice.ToString("N0")</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-column align-items-start gap-1">
+                                        <span class="badge badge-soft-primary px-2 py-1 rounded-pill" style="font-size: 0.75rem;">
+                                            <i class="fa-solid fa-layer-group me-1"></i>@skuCount ตัวเลือก (SKU)
+                                        </span>
+                                        @if (totalStock > 10)
+                                        {
+                                            <span class="badge badge-soft-success px-2 py-1 rounded-pill" style="font-size: 0.75rem;">
+                                                <i class="fa-solid fa-check me-1"></i>มีสินค้า (@totalStock)
+                                            </span>
+                                        }
+                                        else if (totalStock > 0)
+                                        {
+                                            <span class="badge badge-soft-warning px-2 py-1 rounded-pill" style="font-size: 0.75rem;">
+                                                <i class="fa-solid fa-triangle-exclamation me-1"></i>เหลือน้อย (@totalStock)
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-soft-danger px-2 py-1 rounded-pill" style="font-size: 0.75rem;">
+                                                <i class="fa-solid fa-circle-xmark me-1"></i>สินค้าหมด
+                                            </span>
+                                        }
+                                    </div>
+                                </td>
+                                <td>
+                                    <form asp-action="ToggleProductStatus" asp-controller="Admin" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@item.ProductId" />
+                                        @if (item.IsActive == true || item.IsActive == null)
+                                        {
+                                            <button type="submit" class="btn btn-sm btn-success rounded-pill px-3 py-1 shadow-sm text-nowrap" 
+                                                    title="คลิกเพื่อสลับเป็นปิดการขาย" onclick="return confirm('ยืนยันต้องการปิดการขายสินค้า @item.ProductName หรือไม่? (สินค้าจะถูกซ่อนจากหน้าร้านทันที)');">
+                                                <i class="fa-solid fa-circle-check me-1"></i>เปิดขาย
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 text-nowrap" 
+                                                    title="คลิกเพื่อสลับเป็นเปิดขาย" onclick="return confirm('ยืนยันต้องการเปิดขายสินค้า @item.ProductName หรือไม่? (สินค้าจะกลับมาแสดงที่หน้าร้าน)');">
+                                                <i class="fa-solid fa-circle-xmark me-1 text-danger"></i>ปิดการขาย
+                                            </button>
+                                        }
+                                    </form>
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center gap-1">
+                                        <!-- ปุ่มไปจัดการ SKU -->
+                                        <a asp-action="ManageVariants" asp-controller="Admin" asp-route-productId="@item.ProductId" 
+                                           class="btn btn-sm btn-outline-primary rounded-pill px-2" title="จัดการ SKU (สี/ไซส์/สต็อก)">
+                                            <i class="fa-solid fa-layer-group me-1"></i>SKU
+                                        </a>
+
+                                        <!-- แก้ไขข้อมูลสินค้า -->
+                                        <a asp-action="EditProduct" asp-controller="Admin" asp-route-id="@item.ProductId" 
+                                           class="btn btn-sm btn-outline-warning rounded-pill px-2" title="แก้ไขสินค้า">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </a>
+
+                                        <!-- ลบสินค้า -->
+                                        <form method="post" asp-action="DeleteProduct" asp-controller="Admin" asp-route-id="@item.ProductId" class="d-inline"
+                                              onsubmit="return confirm('ยืนยันว่าต้องการลบสินค้า @item.ProductName หรือไม่?');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2" title="ลบสินค้า">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function filterTable() {
+            const input = document.getElementById('productSearchInput');
+            const filter = input.value.toLowerCase();
+            const rows = document.querySelectorAll('.product-row');
+
+            rows.forEach(row => {
+                const name = row.querySelector('.product-name').textContent.toLowerCase();
+                if (name.includes(filter)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+    </script>
+}

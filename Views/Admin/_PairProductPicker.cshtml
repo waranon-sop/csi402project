@@ -1,0 +1,29 @@
+@* ==========================================
+   เลือกสินค้าที่ร่วมโปรจับคู่ 2 ชิ้น (P4)
+   ใช้ใน AddPromotion / EditPromotion
+   ViewBag.Products = รายการสินค้าทั้งหมด, ViewBag.SelectedProductIds = สินค้าที่เลือกไว้แล้ว
+   ========================================== *@
+@{
+    var allProducts = ViewBag.Products as List<waranon_csi402.Models.Product> ?? new List<waranon_csi402.Models.Product>();
+    var selectedIds = ViewBag.SelectedProductIds as List<int> ?? new List<int>();
+}
+
+<div class="mb-4">
+    <label class="form-label fw-semibold text-dark">สินค้าที่ร่วมโปรจับคู่ 2 ชิ้น (เฉพาะโปรแบบ P4)</label>
+    <div class="form-text mb-2">
+        ถ้าเลือกสินค้าไว้ ระบบจะถือว่าโปรนี้เป็นโปรจับคู่: ซื้อสินค้าในรายการนี้ครบทุก 2 ชิ้น ลดตามที่กำหนดจากราคาของคู่นั้น
+        — ถ้าเป็นโปรประเภทอื่น ให้เว้นว่างไว้
+    </div>
+    <div class="border rounded-3 p-3 bg-light" style="max-height: 220px; overflow-y: auto;">
+        @foreach (var p in allProducts)
+        {
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="pairProductIds" value="@p.ProductId"
+                       id="pp_@p.ProductId" checked="@(selectedIds.Contains(p.ProductId))" />
+                <label class="form-check-label small" for="pp_@p.ProductId">
+                    @p.ProductName <span class="text-muted">(฿@p.BasePrice.ToString("N0"))</span>
+                </label>
+            </div>
+        }
+    </div>
+</div>

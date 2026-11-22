@@ -1,0 +1,119 @@
+@model IEnumerable<waranon_csi402.Models.Banner>
+
+@{
+    ViewData["Title"] = "จัดการแบนเนอร์หน้าร้าน";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="mb-4">
+    <h3 class="fw-bold mb-1 text-dark">
+        <i class="fa-solid fa-image text-warning me-2"></i>จัดการแบนเนอร์หน้าร้าน
+    </h3>
+    <p class="text-muted small mb-0">แบนเนอร์ที่เปิดแสดงจะเลื่อนสลับกันบนหน้าแรกของร้าน (เรียงตามลำดับจากน้อยไปมาก)</p>
+</div>
+
+@if (ViewBag.Status != null)
+{
+    <div class="alert alert-info alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
+        <i class="fa-solid fa-circle-info me-2"></i>@ViewBag.Status
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- ฟอร์มเพิ่มแบนเนอร์ -->
+<div class="card card-custom p-4 mb-4">
+    <h6 class="fw-bold mb-3"><i class="fa-solid fa-plus text-primary me-1"></i>เพิ่มแบนเนอร์ใหม่</h6>
+    <form method="post" asp-action="AddBanner" enctype="multipart/form-data">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label small fw-semibold">หัวข้อ <span class="text-danger">*</span></label>
+                <input type="text" name="title" class="form-control" maxlength="200" placeholder="เช่น ลดใหญ่ส่งท้ายปี" required />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small fw-semibold">ข้อความรอง</label>
+                <input type="text" name="subtitle" class="form-control" maxlength="300" placeholder="เช่น เสื้อทุกตัวลดสูงสุด 50%" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small fw-semibold">อัปโหลดรูปแบนเนอร์</label>
+                <input type="file" name="imageFile" class="form-control" accept="image/*" />
+                <div class="form-text">หรือใส่ URL รูปด้านขวาแทน (แนะนำขนาด 1200×400)</div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small fw-semibold">URL รูป (ถ้าไม่ได้อัปโหลด)</label>
+                <input type="text" name="imageUrl" class="form-control" placeholder="https://..." />
+            </div>
+            <div class="col-md-8">
+                <label class="form-label small fw-semibold">ลิงก์เมื่อคลิก</label>
+                <input type="text" name="linkUrl" class="form-control" placeholder="เช่น /Home/Index?categoryId=1" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold">ลำดับการแสดง</label>
+                <input type="number" name="sortOrder" class="form-control" value="0" />
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary rounded-pill px-4 mt-3 fw-semibold">
+            <i class="fa-solid fa-floppy-disk me-1"></i>บันทึกแบนเนอร์
+        </button>
+    </form>
+</div>
+
+<!-- รายการแบนเนอร์ -->
+<div class="card card-custom overflow-hidden">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-custom table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 180px;">รูป</th>
+                        <th>หัวข้อ</th>
+                        <th class="text-center" style="width: 90px;">ลำดับ</th>
+                        <th class="text-center" style="width: 110px;">สถานะ</th>
+                        <th class="text-center" style="width: 200px;">จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">ยังไม่มีแบนเนอร์ — หน้าร้านจะแสดงแบนเนอร์เริ่มต้นแทน</td>
+                        </tr>
+                    }
+                    @foreach (var b in Model)
+                    {
+                        <tr>
+                            <td><img src="@b.ImageUrl" alt="@b.Title" class="rounded" style="width: 160px; height: 55px; object-fit: cover;" /></td>
+                            <td>
+                                <div class="fw-semibold">@b.Title</div>
+                                <small class="text-muted">@b.Subtitle</small>
+                            </td>
+                            <td class="text-center">@b.SortOrder</td>
+                            <td class="text-center">
+                                @if (b.IsActive)
+                                {
+                                    <span class="badge bg-success rounded-pill">แสดงอยู่</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary rounded-pill">ซ่อน</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                <form method="post" asp-action="ToggleBanner" asp-route-id="@b.BannerId" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                                        @(b.IsActive ? "ซ่อน" : "แสดง")
+                                    </button>
+                                </form>
+                                <form method="post" asp-action="DeleteBanner" asp-route-id="@b.BannerId" class="d-inline"
+                                      onsubmit="return confirm('ยืนยันลบแบนเนอร์ @b.Title?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

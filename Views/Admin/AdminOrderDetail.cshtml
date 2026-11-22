@@ -1,0 +1,318 @@
+@model waranon_csi402.Models.Order
+
+@{
+    ViewData["Title"] = "รายละเอียดคำสั่งซื้อ #" + Model.OrderId;
+    Layout = "_LayoutAdmin";
+    var items = Model.Orderitems?.ToList() ?? new List<waranon_csi402.Models.Orderitem>();
+}
+
+<!-- Page Header & Breadcrumb -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a asp-action="OrderList" class="text-decoration-none">จัดการคำสั่งซื้อ</a></li>
+                <li class="breadcrumb-item active" aria-current="page">ออเดอร์ #@Model.OrderId</li>
+            </ol>
+        </nav>
+        <h3 class="fw-bold mb-0 text-dark">
+            <i class="fa-solid fa-receipt text-primary me-2"></i>รายละเอียดคำสั่งซื้อ #@Model.OrderId
+        </h3>
+    </div>
+    <a asp-controller="Admin" asp-action="OrderList" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+        <i class="fa-solid fa-arrow-left me-1"></i>กลับหน้ารายการออเดอร์
+    </a>
+</div>
+
+@if (ViewBag.Status != null)
+{
+    <div class="alert alert-info alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
+        <i class="fa-solid fa-circle-info me-2"></i>@ViewBag.Status
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- สรุปสถานะออเดอร์แบนเนอร์ด้านบน -->
+<div class="card card-custom p-4 mb-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+            <span class="text-muted small d-block">สถานะคำสั่งซื้อปัจจุบัน:</span>
+            <div class="fs-4 fw-bold mt-1">
+                @if (Model.Status == "Pending Payment")
+                {
+                    <span class="text-warning"><i class="fa-solid fa-clock me-2"></i>รอชำระเงิน</span>
+                }
+                else if (Model.Status == "Verifying Slip")
+                {
+                    <span class="text-info"><i class="fa-solid fa-receipt me-2"></i>รอตรวจสอบสลิป</span>
+                }
+                else if (Model.Status == "Paid")
+                {
+                    <span class="text-success"><i class="fa-solid fa-circle-check me-2"></i>ชำระเงินเรียบร้อยแล้ว</span>
+                }
+                else if (Model.Status == "Processing")
+                {
+                    <span class="text-primary"><i class="fa-solid fa-boxes-packing me-2"></i>กำลังแพ็คของ</span>
+                }
+                else if (Model.Status == "Shipped")
+                {
+                    <span class="text-secondary"><i class="fa-solid fa-truck-fast me-2"></i>จัดส่งสินค้าแล้ว</span>
+                }
+                else if (Model.Status == "Completed")
+                {
+                    <span class="text-dark"><i class="fa-solid fa-flag-checkered me-2 text-success"></i>คำสั่งซื้อสำเร็จ</span>
+                }
+                else if (Model.Status == "Cancelled")
+                {
+                    <span class="text-danger"><i class="fa-solid fa-ban me-2"></i>ยกเลิกแล้ว</span>
+                }
+                else
+                {
+                    <span>@Model.Status</span>
+                }
+            </div>
+            <small class="text-muted">
+                สั่งซื้อเมื่อ: @Model.OrderedAt.ToString("dd/MM/yyyy HH:mm น.") • อัปเดตล่าสุด: @Model.UpdatedAt.ToString("dd/MM/yyyy HH:mm น.")
+            </small>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.TrackingNumber))
+        {
+            <div class="bg-light p-3 rounded-3 border text-end">
+                <small class="text-muted d-block">เลขพัสดุ (Tracking Number):</small>
+                <strong class="text-primary fs-5 font-monospace">@Model.TrackingNumber</strong>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <!-- ฝั่งซ้าย: รายการสินค้า และ ที่อยู่จัดส่ง -->
+    <div class="col-lg-8">
+        <!-- ตารางสินค้าในออเดอร์ -->
+        <div class="card card-custom overflow-hidden mb-4">
+            <div class="card-header bg-white py-3 px-4 border-bottom">
+                <h6 class="fw-bold mb-0 text-dark">
+                    <i class="fa-solid fa-shirt text-primary me-2"></i>รายการสินค้าที่สั่งซื้อ (@items.Count รายการ)
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-custom table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width: 70px;">ภาพ</th>
+                                <th>สินค้า</th>
+                                <th>ตัวเลือก (SKU)</th>
+                                <th class="text-center">ราคาต่อชิ้น</th>
+                                <th class="text-center">จำนวน</th>
+                                <th class="text-end">ราคารวม</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var oi in items)
+                            {
+                                var itemTotal = oi.Quantity * oi.UnitPrice;
+                                <tr>
+                                    <td>
+                                        <div class="rounded-3 overflow-hidden bg-light border d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                            @if (!string.IsNullOrEmpty(oi.Variant?.ImageUrl) || !string.IsNullOrEmpty(oi.Variant?.Product?.ImageUrl))
+                                            {
+                                                <img src="@(oi.Variant?.ImageUrl ?? oi.Variant?.Product?.ImageUrl)" alt="สินค้า" style="width:100%; height:100%; object-fit:cover;" />
+                                            }
+                                            else
+                                            {
+                                                <i class="fa-solid fa-shirt text-muted"></i>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">@(oi.Variant?.Product?.ProductName ?? "สินค้า #" + oi.VariantId)</div>
+                                        <small class="text-muted">SKU ID: #@oi.VariantId</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border me-1">สี: @(oi.Variant?.Color ?? "-")</span>
+                                        <span class="badge bg-light text-dark border">ไซส์: @(oi.Variant?.Size ?? "-")</span>
+                                    </td>
+                                    <td class="text-center">
+                                        ฿@oi.UnitPrice.ToString("N2")
+                                    </td>
+                                    <td class="text-center fw-bold">
+                                        x@oi.Quantity
+                                    </td>
+                                    <td class="text-end fw-bold text-dark">
+                                        ฿@itemTotal.ToString("N2")
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- สรุปยอดเงิน -->
+            <div class="card-footer bg-light p-4">
+                <div class="row justify-content-end">
+                    <div class="col-md-6 col-lg-5">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">ยอดรวมสินค้า (Subtotal):</span>
+                            <strong>฿@Model.Subtotal.ToString("N2")</strong>
+                        </div>
+                        @if (Model.DiscountAmt > 0)
+                        {
+                            <div class="d-flex justify-content-between mb-2 text-danger">
+                                <span>
+                                    ส่วนลดโปรโมชั่น/คูปอง:
+                                    @if (Model.Promotion != null) { <small>(@Model.Promotion.PromotionName)</small> }
+                                    @if (Model.Coupon != null) { <small>(โค้ด: @Model.Coupon.CouponCode)</small> }
+                                </span>
+                                <strong>-฿@Model.DiscountAmt.ToString("N2")</strong>
+                            </div>
+                        }
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">ค่าจัดส่ง (Shipping Fee):</span>
+                            <strong>@(Model.ShippingFee > 0 ? "฿" + Model.ShippingFee.ToString("N2") : "จัดส่งฟรี")</strong>
+                        </div>
+                        <hr />
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold text-dark fs-6">ยอดชำระสุทธิ (Total Amount):</span>
+                            <span class="fw-bold text-danger fs-4">฿@Model.TotalAmount.ToString("N2")</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ข้อมูลที่อยู่จัดส่ง & ผู้สั่งซื้อ -->
+        <div class="card card-custom p-4">
+            <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom">
+                <i class="fa-solid fa-location-dot text-danger me-2"></i>ข้อมูลผู้สั่งซื้อและสถานที่จัดส่ง
+            </h6>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="p-3 bg-light rounded-3 h-100">
+                        <strong class="text-dark d-block mb-1">ข้อมูลลูกค้า (Account)</strong>
+                        <div class="small text-muted mb-1">
+                            <i class="fa-solid fa-user me-2 text-primary"></i>@(Model.User?.FirstName) @(Model.User?.LastName)
+                        </div>
+                        <div class="small text-muted mb-1">
+                            <i class="fa-solid fa-envelope me-2 text-primary"></i>@(Model.User?.Email ?? "-")
+                        </div>
+                        <div class="small text-muted">
+                            <i class="fa-solid fa-phone me-2 text-primary"></i>@(Model.User?.PhoneNumber ?? "-")
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="p-3 bg-light rounded-3 h-100">
+                        <strong class="text-dark d-block mb-1">ที่อยู่จัดส่งพัสดุ (Shipping Address)</strong>
+                        @if (Model.Address != null)
+                        {
+                            <div class="small text-dark fw-bold mb-1">ผู้รับ: @Model.Address.ReceiverName</div>
+                            <div class="small text-muted mb-1">เบอร์โทร: @Model.Address.Phone</div>
+                            <div class="small text-muted">
+                                @Model.Address.AddressLine @Model.Address.District @Model.Address.Province @Model.Address.PostalCode
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="text-muted small">ไม่พบข้อมูลที่อยู่</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ฝั่งขวา: เครื่องมืออัปเดตสถานะ (Admin Action Box) & สลิปโอนเงิน -->
+    <div class="col-lg-4">
+        <!-- กล่องอัปเดตสถานะของ Admin -->
+        <div class="card card-custom p-4 mb-4 border-top border-4 border-primary">
+            <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom">
+                <i class="fa-solid fa-sliders text-primary me-2"></i>อัปเดตสถานะคำสั่งซื้อ
+            </h6>
+
+            @{
+                // รายการสถานะที่เปลี่ยนต่อได้ (มาจาก AdminController.GetAllowedNextStatuses)
+                string[] allowedStatuses = ViewBag.AllowedStatuses ?? new string[0];
+                bool isFinal = allowedStatuses.Length == 0;
+
+                var statusLabels = new Dictionary<string, string>
+                {
+                    { "Pending Payment", "รอชำระเงิน" },
+                    { "Verifying Slip", "รอตรวจสลิป" },
+                    { "Paid", "ชำระเงินแล้ว" },
+                    { "Processing", "กำลังแพ็คของ" },
+                    { "Shipped", "จัดส่งแล้ว" },
+                    { "Completed", "สำเร็จเรียบร้อย" },
+                    { "Invalid Slip", "สลิปไม่ถูกต้อง" },
+                    { "Cancelled", "ยกเลิกออเดอร์" },
+                    { "Refunded", "คืนเงิน / คืนสินค้า" }
+                };
+            }
+
+            @if (isFinal)
+            {
+                <div class="alert alert-secondary py-2 small mb-3">
+                    <i class="fa-solid fa-lock me-1"></i>ออเดอร์นี้อยู่ในสถานะ <strong>@Model.Status</strong> (สิ้นสุดแล้ว) ไม่สามารถแก้ไขสถานะได้อีก
+                </div>
+            }
+
+            <form asp-action="UpdateOrderStatus" asp-controller="Admin" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="orderId" value="@Model.OrderId" />
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-dark">เลือกสถานะใหม่:</label>
+                    <select name="newStatus" class="form-select" disabled="@(isFinal ? "disabled" : null)">
+                        @foreach (var s in allowedStatuses)
+                        {
+                            <option value="@s">@statusLabels[s]</option>
+                        }
+                    </select>
+                    <div class="form-text" style="font-size: 0.75rem;">แสดงเฉพาะสถานะที่เปลี่ยนต่อได้จากสถานะปัจจุบัน</div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-semibold text-dark">เลขพัสดุ (Tracking Number):</label>
+                    <input type="text" name="trackingNumber" value="@Model.TrackingNumber" class="form-control" placeholder="เช่น TH0123456789" disabled="@(isFinal ? "disabled" : null)" />
+                    <div class="form-text" style="font-size: 0.75rem;">จำเป็นต้องกรอกเมื่อเปลี่ยนเป็น "จัดส่งแล้ว"</div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2 rounded-pill fw-bold shadow-sm" disabled="@(isFinal ? "disabled" : null)">
+                    <i class="fa-solid fa-check me-1"></i> บันทึกการเปลี่ยนสถานะ
+                </button>
+            </form>
+        </div>
+
+        <!-- หลักฐานการโอนเงิน (สลิป) -->
+        <div class="card card-custom p-4">
+            <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom">
+                <i class="fa-solid fa-receipt text-info me-2"></i>หลักฐานการโอนเงิน (Slip)
+            </h6>
+
+            @if (!string.IsNullOrEmpty(Model.SlipImageUrl))
+            {
+                <div class="text-center p-2 bg-light rounded-3 border mb-3">
+                    <a href="@Model.SlipImageUrl" target="_blank" title="คลิกเพื่อดูภาพขนาดเต็ม">
+                        <img src="@Model.SlipImageUrl" alt="สลิปโอนเงิน" class="img-fluid rounded-3 shadow-sm" style="max-height: 280px; object-fit: contain;" />
+                    </a>
+                </div>
+                <div class="d-grid">
+                    <a href="@Model.SlipImageUrl" target="_blank" class="btn btn-outline-info btn-sm rounded-pill">
+                        <i class="fa-solid fa-magnifying-glass-plus me-1"></i>ดูภาพสลิปขนาดเต็ม
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-4 text-muted bg-light rounded-3 border">
+                    <i class="fa-solid fa-image fa-3x mb-2 opacity-50"></i>
+                    <p class="small mb-0">ลูกค้ายังไม่ได้แนบสลิปการโอนเงิน</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+

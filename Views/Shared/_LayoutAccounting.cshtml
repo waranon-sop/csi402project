@@ -1,29 +1,117 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewData["Title"] - Accounting Panel</title>
+    <title>@ViewData["Title"] - เสื้อผ้า.com Accounting</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/waranon_csi402.styles.css" asp-append-version="true" />
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Google Fonts: Prompt -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --acc-sidebar-bg: #1a1a2e;
+            --acc-sidebar-hover: #16213e;
+            --acc-sidebar-active: #0ea5e9;
+            --acc-body-bg: #f8fafc;
+        }
+
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: var(--acc-body-bg);
+            color: #334155;
+        }
+
+        .hover-light:hover {
+            color: #ffffff !important;
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .hover-white:hover {
+            color: #ffffff !important;
+            border-color: #ffffff !important;
+        }
+
+        .stat-card-acc {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stat-card-acc:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08) !important;
+        }
+
+        .slip-thumb-zoom {
+            transition: transform 0.2s ease;
+            cursor: pointer;
+        }
+
+        .slip-thumb-zoom:hover {
+            transform: scale(1.08);
+        }
+
+        .avatar-circle {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .card-custom {
+            border: 0;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            background-color: #ffffff;
+        }
+
+        .card-custom:hover {
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        @@media print {
+            nav, .navbar, .offcanvas, .btn, footer, .d-print-none {
+                display: none !important;
+            }
+            body, main {
+                background-color: #ffffff !important;
+                padding: 0 !important;
+            }
+            .card {
+                box-shadow: none !important;
+                border: 1px solid #dee2e6 !important;
+            }
+        }
+    </style>
     @RenderSection("Styles", required: false)
 </head>
-<body style="font-family: 'Prompt', sans-serif;">
+
+<body>
 
     <div class="d-flex min-vh-100">
 
-        <!-- Sidebar (Desktop) -->
-        <nav class="d-none d-lg-flex flex-column text-white p-3" style="width: 260px; background-color: #1a1a2e;">
+        <!-- Sidebar Desktop (270px) -->
+        <nav class="d-none d-lg-flex flex-column text-white p-3" style="width: 270px; min-height: 100vh; background-color: var(--acc-sidebar-bg);">
             <partial name="_SidebarAccounting" />
         </nav>
 
-        <!-- Sidebar (Mobile) — Offcanvas -->
-        <div class="offcanvas offcanvas-start text-white" tabindex="-1" id="sidebarOffcanvas" style="background-color: #1a1a2e;">
-            <div class="offcanvas-header border-bottom border-secondary">
-                <h5 class="offcanvas-title text-white">เมนู</h5>
+        <!-- Sidebar Mobile (Offcanvas) -->
+        <div class="offcanvas offcanvas-start text-white" tabindex="-1" id="sidebarOffcanvas" style="width: 280px; background-color: var(--acc-sidebar-bg);">
+            <div class="offcanvas-header border-bottom border-secondary border-opacity-50">
+                <h5 class="offcanvas-title text-white fw-bold d-flex align-items-center">
+                    <span class="bg-info text-dark rounded p-1 me-2 d-inline-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
+                        <i class="fa-solid fa-file-invoice-dollar"></i>
+                    </span>
+                    เสื้อผ้า.com
+                </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
             </div>
             <div class="offcanvas-body d-flex flex-column p-3">
@@ -31,35 +119,86 @@
             </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="flex-grow-1 d-flex flex-column">
-            <!-- Top Navbar -->
-            <nav class="navbar navbar-light bg-white shadow-sm px-3 px-lg-4 py-2">
-                <button class="btn btn-outline-dark d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas">
+        <!-- Main Content Area -->
+        <div class="flex-grow-1 d-flex flex-column" style="min-width: 0;">
+
+            <!-- Top Header Navbar (มาตรฐานเดียวกับ Admin และ Staff) -->
+            <nav class="navbar navbar-expand navbar-light bg-white border-bottom px-3 px-lg-4 py-2 sticky-top shadow-sm">
+                <!-- Hamburger Button for Mobile -->
+                <button class="btn btn-outline-secondary btn-sm d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas">
                     <i class="fa-solid fa-bars"></i>
                 </button>
-                <span class="navbar-text fw-semibold text-dark">
-                    <i class="fa-solid fa-calculator text-info me-2"></i>ระบบจัดการ (Accounting)
-                </span>
-                <div class="d-flex align-items-center">
-                    <a class="text-dark me-3 position-relative" href="#">
-                        <i class="fa-solid fa-bell"></i>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-info" style="font-size: 0.6rem;">2</span>
+
+                <!-- Page Header Breadcrumb / Brand Text -->
+                <div class="d-flex align-items-center me-auto">
+                    <span class="badge bg-info bg-opacity-10 text-info px-2 py-1 rounded me-2 d-none d-sm-inline-block small fw-bold">
+                        <i class="fa-solid fa-file-invoice-dollar me-1"></i>ACCOUNTING
+                    </span>
+                    <span class="fw-semibold text-dark">
+                        ระบบตรวจสอบการเงินและบัญชี เสื้อผ้า.com
+                    </span>
+                </div>
+
+                <!-- Right Topbar Items -->
+                <div class="d-flex align-items-center gap-2">
+                    <!-- ลิงก์หน้าร้าน (Storefront) -->
+                    <a asp-controller="Home" asp-action="Index" target="_blank" 
+                       class="btn btn-sm btn-outline-info rounded-pill px-3 d-flex align-items-center" title="เปิดดูหน้าร้านในแท็บใหม่">
+                        <i class="fa-solid fa-store me-1"></i>
+                        <span class="d-none d-md-inline">ดูหน้าร้าน</span>
                     </a>
-                    <a class="text-decoration-none text-dark small d-none d-sm-inline" asp-area="" asp-controller="Home" asp-action="Index">
-                        <i class="fa-solid fa-store me-1"></i>ไปหน้าร้าน
-                    </a>
+
+                    <!-- User Dropdown Menu (เหมือนกับ Admin และ Staff) -->
+                    <div class="dropdown ms-1">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle text-dark p-1 rounded-pill pe-2" data-bs-toggle="dropdown">
+                            <div class="avatar-circle bg-info text-dark me-2 fw-bold">
+                                @((TempData.Peek("Name")?.ToString()?.Length > 0 ? TempData.Peek("Name")?.ToString()!.Substring(0, 1) : "A").ToUpper())
+                            </div>
+                            <div class="d-none d-md-block text-start" style="line-height: 1.2;">
+                                <div class="fw-bold small">@(TempData.Peek("Name") ?? "ฝ่ายบัญชีการเงิน")</div>
+                                <span class="badge bg-info text-dark" style="font-size: 0.65rem;">@(TempData.Peek("Role") ?? "Accounting")</span>
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                            <li class="dropdown-header small">เข้าสู่ระบบในชื่อ: <strong>@(TempData.Peek("LoginEmail") ?? "accounting@seapha.com")</strong></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item py-2" asp-controller="Accounting" asp-action="Index" asp-route-tab="verifying">
+                                    <i class="fa-solid fa-clock-rotate-left me-2 text-warning"></i>คิวงานรอตรวจสลิป
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item py-2" asp-controller="Accounting" asp-action="FinancialReport">
+                                    <i class="fa-solid fa-chart-pie me-2 text-info"></i>รายงานสรุปรายรับ
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item py-2" asp-controller="Home" asp-action="Index" target="_blank">
+                                    <i class="fa-solid fa-store me-2 text-primary"></i>ไปที่หน้าร้าน
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item py-2 text-danger" asp-controller="Account" asp-action="Logout">
+                                    <i class="fa-solid fa-right-from-bracket me-2"></i>ออกจากระบบ
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </nav>
 
-            <!-- Page Content -->
-            <main class="flex-grow-1 p-3 p-lg-4 bg-light">
+            <!-- Page Body Content -->
+            <main class="flex-grow-1 p-3 p-lg-4">
                 @RenderBody()
             </main>
 
-            <!-- Footer -->
-            <footer class="bg-white border-top text-center py-2 small text-muted">
-                &copy; 2026 - เสื้อผ้า.com - Accounting Panel
+            <!-- Accounting Footer (สไตล์เดียวกับ Admin และ Staff) -->
+            <footer class="bg-white border-top text-center py-3 small text-muted">
+                <div class="container-fluid d-flex flex-wrap justify-content-between align-items-center px-4">
+                    <span>&copy; 2026 - <strong>เสื้อผ้า.com</strong> Accounting & Finance System</span>
+                    <span class="text-secondary">CSI402 Financial Management</span>
+                </div>
             </footer>
         </div>
 
@@ -70,4 +209,5 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
+
 </html>

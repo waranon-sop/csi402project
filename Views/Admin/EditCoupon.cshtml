@@ -1,0 +1,92 @@
+@model waranon_csi402.Models.Coupon
+
+@{
+    ViewData["Title"] = "แก้ไขโค้ดคูปอง #" + Model.CouponId;
+    Layout = "_LayoutAdmin";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4" style="max-width: 720px; margin: 0 auto;">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a asp-action="PromotionList" class="text-decoration-none">จัดการโปรโมชั่น</a></li>
+                <li class="breadcrumb-item active" aria-current="page">แก้ไขโค้ด @Model.CouponCode</li>
+            </ol>
+        </nav>
+        <h3 class="fw-bold mb-0 text-dark">
+            <i class="fa-solid fa-pen-to-square text-warning me-2"></i>แก้ไขโค้ดคูปองส่วนลด
+        </h3>
+    </div>
+    <a asp-action="PromotionList" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+        <i class="fa-solid fa-arrow-left me-1"></i>ย้อนกลับ
+    </a>
+</div>
+
+<div class="card card-custom p-4 shadow-sm" style="max-width: 720px; margin: 0 auto;">
+    @if (ViewBag.Status != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show border-0 mb-4" role="alert">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>@ViewBag.Status
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <form asp-action="EditCoupon" asp-controller="Admin" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="CouponId" value="@Model.CouponId" />
+
+        <div class="mb-3">
+            <label class="form-label fw-semibold text-dark">รหัสคูปอง (Coupon Code) <span class="text-danger">*</span></label>
+            <input type="text" name="CouponCode" value="@Model.CouponCode" class="form-control form-control-lg fs-6 font-monospace text-uppercase" required />
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark">ประเภทส่วนลด</label>
+                <select name="DiscountType" class="form-select">
+                    <option value="Percent" selected="@(Model.DiscountType == "Percent" || Model.DiscountType == "Percentage")">หักเปอร์เซ็นต์ (%)</option>
+                    <option value="Fixed" selected="@(Model.DiscountType == "Fixed")">หักจำนวนเงินคงที่ (บาท)</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark">มูลค่าส่วนลด <span class="text-danger">*</span></label>
+                <input type="number" step="0.01" min="0" name="DiscountValue" value="@Model.DiscountValue" class="form-control" required />
+            </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark">ยอดสั่งซื้อขั้นต่ำ (บาท)</label>
+                <input type="number" step="0.01" min="0" name="MinOrderAmt" value="@Model.MinOrderAmt" class="form-control" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark">จำกัดสิทธิ์การใช้งาน (ครั้ง)</label>
+                <input type="number" min="0" name="UsageLimit" value="@Model.UsageLimit" class="form-control" />
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark">วันหมดอายุ (Expires At)</label>
+                <input type="datetime-local" name="ExpiresAt" value="@(Model.ExpiresAt?.ToString("yyyy-MM-ddTHH:mm"))" class="form-control" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold text-dark">สถานะเปิดใช้งาน</label>
+                <select name="IsActive" class="form-select">
+                    <option value="true" selected="@(Model.IsActive == true || Model.IsActive == null)">🟢 เปิดใช้งาน (Active)</option>
+                    <option value="false" selected="@(Model.IsActive == false)">⚪ ปิดใช้งานชั่วคราว (Disabled)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 pt-2 border-top">
+            <button type="submit" class="btn btn-warning px-4 py-2 rounded-pill fw-bold text-dark shadow-sm">
+                <i class="fa-solid fa-check me-1"></i> บันทึกการแก้ไขคูปอง
+            </button>
+            <a asp-action="PromotionList" class="btn btn-outline-secondary px-4 py-2 rounded-pill">
+                ยกเลิก
+            </a>
+        </div>
+    </form>
+</div>
+

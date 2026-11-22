@@ -1,0 +1,209 @@
+@model IEnumerable<waranon_csi402.Models.Order>
+
+@{
+    ViewData["Title"] = "รายการคำสั่งซื้อ";
+    Layout = "_LayoutAdmin";
+    string selectedStatus = ViewBag.SelectedStatus as string ?? "All";
+    string search = ViewBag.Search as string ?? "";
+}
+
+<!-- หัวข้อหน้า -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="fw-bold mb-1">
+            <i class="fa-solid fa-cart-shopping text-primary me-2"></i>รายการคำสั่งซื้อ
+        </h4>
+        <small class="text-muted">ตรวจสอบคำสั่งซื้อ ดูสลิปโอนเงิน และเปลี่ยนสถานะ</small>
+    </div>
+    <a asp-action="SalesReport" class="btn btn-sm btn-outline-success">
+        <i class="fa-solid fa-chart-line me-1"></i>ดูรายงานยอดขาย
+    </a>
+</div>
+
+<!-- แจ้งเตือนข้อความสถานะ -->
+@if (ViewBag.Status != null)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        @ViewBag.Status
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- ปุ่มเลือกดูตามสถานะ -->
+<div class="card mb-3">
+    <div class="card-body p-2">
+        <div class="d-flex flex-wrap gap-2">
+            <a asp-action="OrderList" asp-route-status="All" asp-route-search="@search"
+               class="btn btn-sm @(selectedStatus == "All" ? "btn-dark" : "btn-light border")">
+                ทั้งหมด (@(ViewBag.CountAll ?? 0))
+            </a>
+            <a asp-action="OrderList" asp-route-status="Pending Payment" asp-route-search="@search"
+               class="btn btn-sm @(selectedStatus == "Pending Payment" ? "btn-warning text-dark" : "btn-light border")">
+                รอชำระ (@(ViewBag.CountPending ?? 0))
+            </a>
+            <a asp-action="OrderList" asp-route-status="Verifying Slip" asp-route-search="@search"
+               class="btn btn-sm @(selectedStatus == "Verifying Slip" ? "btn-info text-white" : "btn-light border")">
+                รอตรวจสลิป (@(ViewBag.CountVerifying ?? 0))
+            </a>
+            <a asp-action="OrderList" asp-route-status="Paid" asp-route-search="@search"
+               class="btn btn-sm @(selectedStatus == "Paid" ? "btn-success" : "btn-light border")">
+                ชำระแล้ว (@(ViewBag.CountPaid ?? 0))
+            </a>
+            <a asp-action="OrderList" asp-route-status="Processing" asp-route-search="@search"
+               class="btn btn-sm @(selectedStatus == "Processing" ? "btn-primary" : "btn-light border")">
+                กำลังแพ็ค (@(ViewBag.CountProcessing ?? 0))
+            </a>
+            <a asp-action="OrderList" asp-route-status="Shipped" asp-route-search="@search"
+               class="btn btn-sm @(selectedStatus == "Shipped" ? "btn-secondary" : "btn-light border")">
+                จัดส่งแล้ว (@(ViewBag.CountShipped ?? 0))
+            </a>
+            <a asp-action="OrderList" asp-route-status="Completed" asp-route-search="@search"
+               class="btn btn-sm @(selectedStatus == "Completed" ? "btn-dark" : "btn-light border")">
+                สำเร็จ (@(ViewBag.CountCompleted ?? 0))
+            </a>
+            <a asp-action="OrderList" asp-route-status="Cancelled" asp-route-search="@search"
+               class="btn btn-sm @(selectedStatus == "Cancelled" ? "btn-danger" : "btn-light border")">
+                ยกเลิก (@(ViewBag.CountCancelled ?? 0))
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- ช่องค้นหา -->
+<div class="card mb-3">
+    <div class="card-body p-2">
+        <form method="get" asp-action="OrderList" class="row g-2 align-items-center">
+            <input type="hidden" name="status" value="@selectedStatus" />
+            <div class="col-md-6 col-12">
+                <div class="input-group">
+                    <input type="text" name="search" value="@search" class="form-control form-control-sm"
+                           placeholder="ค้นหาด้วย เลขออเดอร์ หรือ ชื่อลูกค้า..." />
+                    <button type="submit" class="btn btn-sm btn-primary">ค้นหา</button>
+                    @if (!string.IsNullOrEmpty(search))
+                    {
+                        <a asp-action="OrderList" asp-route-status="@selectedStatus"
+                           class="btn btn-sm btn-outline-secondary">ล้าง</a>
+                    }
+                </div>
+            </div>
+            <div class="col-md-6 col-12 text-md-end text-muted small">
+                พบข้อมูลทั้งหมด <strong>@Model.Count()</strong> รายการ
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ตารางแสดงรายการคำสั่งซื้อ -->
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle mb-0">
+                <thead class="table-light text-center">
+                    <tr>
+                        <th style="width: 90px;">เลขออเดอร์</th>
+                        <th style="width: 140px;">วันที่สั่ง</th>
+                        <th>ลูกค้า / ผู้รับ</th>
+                        <th style="width: 130px;">ยอดรวม</th>
+                        <th style="width: 110px;">การชำระเงิน</th>
+                        <th class="text-nowrap" style="width: 100px;">สลิปโอนเงิน</th>
+                        <th class="text-nowrap" style="width: 130px;">สถานะ</th>
+                        <th class="text-nowrap" style="width: 140px;">จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">
+                                ไม่พบรายการคำสั่งซื้อ
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var order in Model)
+                        {
+                            <tr>
+                                <td class="text-center fw-bold text-primary">
+                                    #@order.OrderId
+                                </td>
+                                <td class="text-center">
+                                    <div>@order.OrderedAt.ToString("dd/MM/yyyy")</div>
+                                    <small class="text-muted">@order.OrderedAt.ToString("HH:mm") น.</small>
+                                </td>
+                                <td>
+                                    <strong>@(order.Address?.ReceiverName ?? (order.User?.FirstName + " " + order.User?.LastName))</strong>
+                                    <div class="small text-muted">@(order.User?.Email ?? "-")</div>
+                                    @if (!string.IsNullOrEmpty(order.Address?.Phone))
+                                    {
+                                        <div class="small text-muted">โทร: @order.Address.Phone</div>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <div class="fw-bold text-dark">฿@order.TotalAmount.ToString("N2")</div>
+                                    <small class="text-muted">(@(order.Orderitems?.Count ?? 0) รายการ)</small>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-light text-dark border">
+                                        @(order.PaymentMethod == "PromptPay" ? "พร้อมเพย์" : (order.PaymentMethod == "Bank Transfer" ? "โอนเงิน" : order.PaymentMethod))
+                                    </span>
+                                </td>
+                                <td class="text-center text-nowrap">
+                                    @if (!string.IsNullOrEmpty(order.SlipImageUrl))
+                                    {
+                                        <a href="@order.SlipImageUrl" target="_blank" class="btn btn-sm btn-info text-white text-nowrap">
+                                            <i class="fa-solid fa-image me-1"></i>ดูสลิป
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">-</span>
+                                    }
+                                </td>
+                                <td class="text-center text-nowrap">
+                                    @if (order.Status == "Pending Payment")
+                                    {
+                                        <span class="badge bg-warning text-dark text-nowrap"><i class="fa-solid fa-clock me-1"></i>รอชำระเงิน</span>
+                                    }
+                                    else if (order.Status == "Verifying Slip")
+                                    {
+                                        <span class="badge bg-info text-dark text-nowrap"><i class="fa-solid fa-receipt me-1"></i>รอตรวจสลิป</span>
+                                    }
+                                    else if (order.Status == "Paid")
+                                    {
+                                        <span class="badge bg-success text-nowrap"><i class="fa-solid fa-check me-1"></i>ชำระแล้ว</span>
+                                    }
+                                    else if (order.Status == "Processing")
+                                    {
+                                        <span class="badge bg-primary text-nowrap"><i class="fa-solid fa-box me-1"></i>กำลังแพ็ค</span>
+                                    }
+                                    else if (order.Status == "Shipped")
+                                    {
+                                        <span class="badge bg-secondary text-nowrap"><i class="fa-solid fa-truck me-1"></i>จัดส่งแล้ว</span>
+                                    }
+                                    else if (order.Status == "Completed")
+                                    {
+                                        <span class="badge bg-dark text-nowrap"><i class="fa-solid fa-circle-check me-1"></i>สำเร็จ</span>
+                                    }
+                                    else if (order.Status == "Cancelled")
+                                    {
+                                        <span class="badge bg-danger text-nowrap"><i class="fa-solid fa-xmark me-1"></i>ยกเลิก</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary text-nowrap">@order.Status</span>
+                                    }
+                                </td>
+                                <td class="text-center text-nowrap">
+                                    <a asp-action="AdminOrderDetail" asp-route-id="@order.OrderId" class="btn btn-sm btn-primary text-nowrap px-3">
+                                        ดูรายละเอียด
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

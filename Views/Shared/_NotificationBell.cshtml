@@ -1,0 +1,55 @@
+@* ==========================================
+   ไอคอนกระดิ่งแจ้งเตือน + จำนวนที่ยังไม่อ่าน
+   ใช้: @await Html.PartialAsync("_NotificationBell", "navbar")   ➔ Navbar หน้าร้าน
+        @await Html.PartialAsync("_NotificationBell", "sidebar")  ➔ Sidebar หลังบ้าน
+   ========================================== *@
+@model string
+@inject waranon_csi402.Models.Csi402dbContext _db
+@{
+    int unreadCount = 0;
+    bool isLoggedIn = false;
+
+    var bellEmail = TempData.Peek("LoginEmail") as string;
+    if (!string.IsNullOrEmpty(bellEmail))
+    {
+        var bellUser = (from u in _db.Users where u.Email == bellEmail select u).FirstOrDefault();
+        if (bellUser != null)
+        {
+            isLoggedIn = true;
+            unreadCount = (from n in _db.Notifications
+                           where n.UserId == bellUser.UserId && !n.IsRead
+                           select n).Count();
+        }
+    }
+}
+
+@if (isLoggedIn)
+{
+    if (Model == "navbar")
+    {
+        <li class="nav-item me-2">
+            <a class="nav-link text-dark position-relative p-2" asp-controller="Account" asp-action="Notifications" title="การแจ้งเตือน">
+                <i class="fa-solid fa-bell fs-5"></i>
+                @if (unreadCount > 0)
+                {
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm" style="font-size: 0.65rem;">
+                        @unreadCount
+                    </span>
+                }
+            </a>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item mb-1">
+            <a class="nav-link text-white-50" asp-controller="Account" asp-action="Notifications">
+                <i class="fa-solid fa-bell me-2 text-warning"></i>
+                <span>การแจ้งเตือน</span>
+                @if (unreadCount > 0)
+                {
+                    <span class="badge rounded-pill bg-danger ms-1">@unreadCount</span>
+                }
+            </a>
+        </li>
+    }
+}

@@ -1,55 +1,121 @@
-<!-- Sidebar Admin Menu -->
-<a class="text-white text-decoration-none fs-5 fw-bold mb-4 pb-3 border-bottom border-secondary d-block" href="#">
-    <i class="fa-solid fa-shield-halved me-2"></i>Admin Panel
-</a>
+@{
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
 
-<ul class="nav flex-column mb-auto">
-    <li class="nav-item mb-1">
-        <a class="nav-link text-white rounded px-3 py-2" asp-area="" asp-controller="Admin" asp-action="Index">
-            <i class="fa-solid fa-gauge-high me-2"></i>แดชบอร์ด
-        </a>
-    </li>
-    <li class="nav-item mb-1">
-        <a class="nav-link text-white-50 rounded px-3 py-2" href="#">
-            <i class="fa-solid fa-box me-2"></i>จัดการสินค้า
-        </a>
-    </li>
-    <li class="nav-item mb-1">
-        <a class="nav-link text-white-50 rounded px-3 py-2" href="#">
-            <i class="fa-solid fa-tags me-2"></i>จัดการหมวดหมู่
-        </a>
-    </li>
-    <li class="nav-item mb-1">
-        <a class="nav-link text-white-50 rounded px-3 py-2" href="#">
-            <i class="fa-solid fa-cart-shopping me-2"></i>จัดการออเดอร์
-        </a>
-    </li>
-    <li class="nav-item mb-1">
-        <a class="nav-link text-white-50 rounded px-3 py-2" asp-controller="Admin" asp-action="UserList">
-            <i class="fa-solid fa-users me-2"></i>จัดการผู้ใช้งาน
-        </a>
-    </li>
-    <li class="nav-item mb-1">
-        <a class="nav-link text-white-50 rounded px-3 py-2" href="#">
-            <i class="fa-solid fa-chart-line me-2"></i>รายงานยอดขาย
-        </a>
-    </li>
-    <li class="nav-item mb-1">
-        <a class="nav-link text-white-50 rounded px-3 py-2" href="#">
-            <i class="fa-solid fa-gear me-2"></i>ตั้งค่าระบบ
-        </a>
-    </li>
-</ul>
+    bool isDashboard = currentController == "Admin" && currentAction == "Index";
+    bool isProducts = currentController == "Admin" && (currentAction == "ProductList" || currentAction == "AddProduct" || currentAction == "EditProduct" || currentAction == "ManageVariants" || currentAction == "ProductVariantList");
+    bool isCategories = currentController == "Admin" && (currentAction == "CategoryList" || currentAction == "AddCategory" || currentAction == "EditCategory");
+    bool isPromotions = currentController == "Admin" && (currentAction == "PromotionList" || currentAction == "AddPromotion" || currentAction == "EditPromotion" || currentAction == "AddCoupon" || currentAction == "EditCoupon");
+    bool isOrders = currentController == "Admin" && (currentAction == "OrderList" || currentAction == "AdminOrderDetail");
+    bool isReports = currentController == "Admin" && currentAction == "SalesReport";
+    bool isUsers = currentController == "Admin" && (currentAction == "UserList" || currentAction == "AddUser" || currentAction == "EditUser");
+}
 
-<div class="border-top border-secondary pt-3 mt-3">
-    <div class="d-flex align-items-center">
-        <i class="fa-solid fa-circle-user fs-4 me-2"></i>
-        <div>
-            <small class="d-block fw-semibold">@(TempData.Peek("Name") ?? "Admin User")</small>
-            <small class="text-white-50">@(TempData.Peek("Role") ?? "ผู้ดูแลระบบ")</small>
+<!-- Sidebar Brand Logo Header -->
+<div class="d-flex align-items-center mb-4 pb-3 border-bottom border-secondary border-opacity-25">
+    <div class="bg-primary text-white rounded-3 p-2 me-2 d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px;">
+        <i class="fa-solid fa-shirt fs-5"></i>
+    </div>
+    <div>
+        <h5 class="fw-bold mb-0 text-white" style="letter-spacing: -0.5px;">เสื้อผ้า<span class="text-primary">.com</span></h5>
+        <small class="text-secondary" style="font-size: 0.72rem;">ADMIN DASHBOARD</small>
+    </div>
+</div>
+
+<!-- Navigation Menu -->
+<div class="d-flex flex-column mb-auto">
+
+    <!-- Section: เมนูหลัก -->
+    <div class="sidebar-section-title">เมนูหลัก</div>
+    <ul class="nav flex-column mb-2">
+        <li class="nav-item mb-1">
+            <a class="nav-link @(isDashboard ? "active" : "")" asp-area="" asp-controller="Admin" asp-action="Index">
+                <i class="fa-solid fa-gauge-high me-2 text-primary"></i>แดชบอร์ดภาพรวม
+            </a>
+        </li>
+    </ul>
+
+    <!-- Section: จัดการร้านค้าและสินค้า -->
+    <div class="sidebar-section-title">จัดการสินค้า & สต็อก</div>
+    <ul class="nav flex-column mb-2">
+        <li class="nav-item mb-1">
+            <a class="nav-link @(isProducts ? "active" : "")" asp-controller="Admin" asp-action="ProductList">
+                <i class="fa-solid fa-boxes-stacked me-2 text-info"></i>จัดการสินค้า & สต็อก
+            </a>
+        </li>
+        <li class="nav-item mb-1">
+            <a class="nav-link @(isCategories ? "active" : "")" asp-controller="Admin" asp-action="CategoryList">
+                <i class="fa-solid fa-tags me-2 text-warning"></i>หมวดหมู่เสื้อผ้า
+            </a>
+        </li>
+        <li class="nav-item mb-1">
+            <a class="nav-link @(isPromotions ? "active" : "")" asp-controller="Admin" asp-action="PromotionList">
+                <i class="fa-solid fa-ticket me-2 text-danger"></i>โปรโมชั่น & โค้ดส่วนลด
+            </a>
+        </li>
+        <li class="nav-item mb-1">
+            <a class="nav-link @(currentAction == "BannerList" ? "active" : "")" asp-controller="Admin" asp-action="BannerList">
+                <i class="fa-solid fa-image me-2 text-warning"></i>แบนเนอร์หน้าร้าน
+            </a>
+        </li>
+    </ul>
+
+    <!-- Section: คำสั่งซื้อ & รายงาน -->
+    <div class="sidebar-section-title">คำสั่งซื้อ & รายงาน</div>
+    <ul class="nav flex-column mb-2">
+        <li class="nav-item mb-1">
+            <a class="nav-link @(isOrders ? "active" : "")" asp-controller="Admin" asp-action="OrderList">
+                <i class="fa-solid fa-cart-shopping me-2 text-info"></i>จัดการคำสั่งซื้อ
+            </a>
+        </li>
+        <li class="nav-item mb-1">
+            <a class="nav-link @(isReports ? "active" : "")" asp-controller="Admin" asp-action="SalesReport">
+                <i class="fa-solid fa-chart-line me-2 text-success"></i>รายงานยอดขาย
+            </a>
+        </li>
+    </ul>
+
+    <!-- Section: ผู้ใช้งาน & สมาชิก -->
+    <div class="sidebar-section-title">ระบบ & สมาชิก</div>
+    <ul class="nav flex-column mb-2">
+        <li class="nav-item mb-1">
+            <a class="nav-link @(isUsers ? "active" : "")" asp-controller="Admin" asp-action="UserList">
+                <i class="fa-solid fa-users me-2 text-primary"></i>จัดการผู้ใช้งาน
+            </a>
+        </li>
+        @await Html.PartialAsync("_NotificationBell", "sidebar")
+        <li class="nav-item mb-1">
+            <a class="nav-link text-white-50" asp-controller="Home" asp-action="Index" target="_blank">
+                <i class="fa-solid fa-arrow-up-right-from-square me-2 text-danger"></i>เปิดดูหน้าร้าน
+            </a>
+        </li>
+        <li class="nav-item mb-1">
+            <a class="nav-link text-white-50" asp-controller="Accounting" asp-action="Index">
+                <i class="fa-solid fa-calculator me-2 text-info"></i>ระบบฝ่ายบัญชี
+            </a>
+        </li>
+        <li class="nav-item mb-1">
+            <a class="nav-link text-white-50" asp-controller="Staff" asp-action="Index">
+                <i class="fa-solid fa-boxes-packing me-2 text-success"></i>ระบบคลังสินค้า
+            </a>
+        </li>
+    </ul>
+
+</div>
+
+<!-- Sidebar Footer User Profile Card -->
+<div class="border-top border-secondary border-opacity-25 pt-3 mt-auto">
+    <div class="p-2 rounded-3 bg-secondary bg-opacity-25 d-flex align-items-center mb-2">
+        <div class="avatar-circle bg-primary text-white me-2" style="width: 34px; height: 34px; font-size: 0.85rem;">
+            @((TempData.Peek("Name")?.ToString()?.Length > 0 ? TempData.Peek("Name")?.ToString()!.Substring(0, 1) : "A").ToUpper())
+        </div>
+        <div class="overflow-hidden flex-grow-1" style="line-height: 1.2;">
+            <div class="fw-semibold text-white small text-truncate">@(TempData.Peek("Name") ?? "Admin User")</div>
+            <span class="badge bg-danger bg-opacity-75 py-0 px-2" style="font-size: 0.65rem;">@(TempData.Peek("Role") ?? "Admin")</span>
         </div>
     </div>
-    <a asp-controller="Account" asp-action="Login" class="btn btn-outline-light btn-sm w-100 mt-2">
+
+    <a asp-controller="Account" asp-action="Logout" class="btn btn-outline-danger btn-sm w-100 rounded-pill py-1" style="font-size: 0.8rem;">
         <i class="fa-solid fa-right-from-bracket me-1"></i>ออกจากระบบ
     </a>
 </div>

@@ -1,50 +1,82 @@
-<!-- Sidebar Staff Menu -->
-<a class="text-white text-decoration-none fs-5 fw-bold mb-4 pb-3 border-bottom border-secondary d-block" href="#">
-    <i class="fa-solid fa-clipboard-list me-2"></i>Staff Panel
-</a>
+@{
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
 
-<ul class="nav flex-column mb-auto">
-    <li class="nav-item mb-1">
-        <a class="nav-link text-white rounded px-3 py-2" asp-area="" asp-controller="Staff" asp-action="Index">
-            <i class="fa-solid fa-gauge-high me-2"></i>แดชบอร์ด
-        </a>
-    </li>
-    <li class="nav-item mb-1">
-        <a class="nav-link text-white-50 rounded px-3 py-2" href="#">
-            <i class="fa-solid fa-list-check me-2"></i>รายการออเดอร์รอจัดส่ง
-        </a>
-    </li>
-    <li class="nav-item mb-1">
-        <a class="nav-link text-white-50 rounded px-3 py-2" href="#">
-            <i class="fa-solid fa-truck-fast me-2"></i>จัดการการจัดส่ง
-        </a>
-    </li>
-    <li class="nav-item mb-1">
-        <a class="nav-link text-white-50 rounded px-3 py-2" href="#">
-            <i class="fa-solid fa-warehouse me-2"></i>จัดการสต็อกสินค้า
-        </a>
-    </li>
-    <li class="nav-item mb-1">
-        <a class="nav-link text-white-50 rounded px-3 py-2" href="#">
-            <i class="fa-solid fa-box-open me-2"></i>รับสินค้าเข้าคลัง
-        </a>
-    </li>
-    <li class="nav-item mb-1">
-        <a class="nav-link text-white-50 rounded px-3 py-2" href="#">
-            <i class="fa-solid fa-rotate-left me-2"></i>คำขอคืนสินค้า
-        </a>
-    </li>
-</ul>
+    bool isOrders = currentController == "Staff" && (currentAction == "Index" || currentAction == "OrderDetail" || currentAction == "PrintSlip");
+    bool isStock = currentController == "Staff" && currentAction == "StockAlert";
+}
 
-<div class="border-top border-secondary pt-3 mt-3">
-    <div class="d-flex align-items-center">
-        <i class="fa-solid fa-circle-user fs-4 me-2"></i>
-        <div>
-            <small class="d-block fw-semibold">Staff User</small>
-            <small class="text-white-50">พนักงาน</small>
+<!-- Sidebar Brand Logo Header -->
+<div class="d-flex align-items-center mb-4 pb-3 border-bottom border-white border-opacity-10">
+    <div class="bg-success text-white rounded-3 p-2 me-2 d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px; background-color: #2d6a4f !important;">
+        <i class="fa-solid fa-boxes-packing fs-5"></i>
+    </div>
+    <div>
+        <h5 class="fw-bold mb-0 text-white" style="letter-spacing: -0.5px;">เสื้อผ้า<span style="color: #74c69d;">.com</span></h5>
+        <small class="text-white-50" style="font-size: 0.72rem;">ฝ่ายคลังสินค้าและจัดส่ง</small>
+    </div>
+</div>
+
+<!-- Navigation Menu (Simple & Focused) -->
+<div class="d-flex flex-column mb-auto">
+
+    <div class="sidebar-section-title">เมนูการทำงาน</div>
+    <ul class="nav flex-column mb-3">
+        <!-- 1. จัดการคำสั่งซื้อ & จัดส่ง -->
+        <li class="nav-item mb-2">
+            <a class="nav-link @(isOrders ? "active" : "")" asp-controller="Staff" asp-action="Index">
+                <i class="fa-solid fa-clipboard-list me-2"></i>
+                <span class="flex-grow-1">จัดการคำสั่งซื้อ & จัดส่ง</span>
+            </a>
+        </li>
+
+        <!-- 2. คลังสินค้า & สต็อก -->
+        <li class="nav-item mb-2">
+            <a class="nav-link @(isStock ? "active" : "")" asp-controller="Staff" asp-action="StockAlert">
+                <i class="fa-solid fa-boxes-stacked me-2"></i>
+                <span class="flex-grow-1">สต็อกสินค้า & เติมของ</span>
+            </a>
+        </li>
+    </ul>
+
+    <div class="sidebar-section-title">สลับระบบทำงาน</div>
+    <ul class="nav flex-column mb-2">
+        @await Html.PartialAsync("_NotificationBell", "sidebar")
+        <li class="nav-item mb-1">
+            <a class="nav-link text-white-50" asp-controller="Home" asp-action="Index" target="_blank">
+                <i class="fa-solid fa-arrow-up-right-from-square me-2" style="color: #74c69d;"></i>
+                <span>เปิดดูหน้าร้าน</span>
+            </a>
+        </li>
+        <li class="nav-item mb-1">
+            <a class="nav-link text-white-50" asp-controller="Accounting" asp-action="Index">
+                <i class="fa-solid fa-calculator me-2 text-info"></i>
+                <span>ระบบฝ่ายบัญชี</span>
+            </a>
+        </li>
+        <li class="nav-item mb-1">
+            <a class="nav-link text-white-50" asp-controller="Admin" asp-action="Index">
+                <i class="fa-solid fa-shield-halved me-2 text-primary"></i>
+                <span>ระบบผู้ดูแลร้าน</span>
+            </a>
+        </li>
+    </ul>
+
+</div>
+
+<!-- Sidebar Footer User Profile Card -->
+<div class="border-top border-white border-opacity-10 pt-3 mt-auto">
+    <div class="p-2 rounded-3 bg-white bg-opacity-10 d-flex align-items-center mb-2">
+        <div class="avatar-circle text-white me-2" style="width: 36px; height: 36px; font-size: 0.85rem; background-color: #2d6a4f;">
+            @((TempData.Peek("Name")?.ToString()?.Length > 0 ? TempData.Peek("Name")?.ToString()!.Substring(0, 1) : "S").ToUpper())
+        </div>
+        <div class="overflow-hidden flex-grow-1" style="line-height: 1.2;">
+            <div class="fw-semibold text-white small text-truncate">@(TempData.Peek("Name") ?? "พนักงานคลังสินค้า")</div>
+            <span class="badge bg-success bg-opacity-75 py-0 px-2" style="font-size: 0.65rem;">@(TempData.Peek("Role") ?? "Staff")</span>
         </div>
     </div>
-    <a href="#" class="btn btn-outline-light btn-sm w-100 mt-2">
+
+    <a asp-controller="Account" asp-action="Login" class="btn btn-outline-light btn-sm w-100 rounded-pill py-1 text-white-50" style="font-size: 0.8rem;">
         <i class="fa-solid fa-right-from-bracket me-1"></i>ออกจากระบบ
     </a>
 </div>

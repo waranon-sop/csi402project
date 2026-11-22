@@ -1,0 +1,345 @@
+@model waranon_csi402.Models.Order
+@{
+    Layout = "_Layout2";
+    ViewData["Title"] = $"รายละเอียดคำสั่งซื้อ #{Model.OrderId}";
+
+    string GetBadgeColor(string status) => status switch
+    {
+        "Pending Payment" => "warning text-dark",
+        "Verifying Slip"  => "info text-dark",
+        "Paid"            => "primary",
+        "Processing"      => "secondary",
+        "Shipped"         => "success",
+        "Completed"       => "dark",
+        "Cancelled"       => "danger",
+        _                 => "light text-dark"
+    };
+
+    // คำนวณ Step ใน Timeline
+    int currentStep = Model.Status switch
+    {
+        "Pending Payment" => 1,
+        "Verifying Slip"  => 2,
+        "Paid"            => 3,
+        "Processing"      => 4,
+        "Shipped"         => 5,
+        "Completed"       => 5,
+        _                 => 0
+    };
+}
+
+<div class="container py-4">
+    <!-- Navigation & Title -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb small mb-1">
+                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">หน้าหลัก</a></li>
+                    <li class="breadcrumb-item"><a asp-controller="Cart" asp-action="MyOrders">ประวัติคำสั่งซื้อ</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">#@Model.OrderId</li>
+                </ol>
+            </nav>
+            <h3 class="fw-bold mb-0">
+                คำสั่งซื้อ <span class="text-primary">#@Model.OrderId</span>
+                <span class="badge bg-@GetBadgeColor(Model.Status) fs-6 ms-2 rounded-pill px-3 py-2">
+                    @Model.Status
+                </span>
+            </h3>
+        </div>
+        <div class="mt-3 mt-sm-0">
+            <a asp-controller="Cart" asp-action="MyOrders" class="btn btn-outline-secondary rounded-pill btn-sm">
+                <i class="fa-solid fa-arrow-left me-1"></i>กลับไปรายการทั้งหมด
+            </a>
+        </div>
+    </div>
+
+    @if (ViewBag.Status != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-3 mb-4 shadow-sm" role="alert">
+            <i class="fa-solid fa-circle-check me-2"></i>@ViewBag.Status
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- 1. ไทม์ไลน์สถานะพัสดุ (Order Status Timeline) -->
+    @if (Model.Status != "Cancelled")
+    {
+        <div class="card shadow-sm border-0 rounded-4 p-4 mb-4">
+            <h6 class="fw-bold text-muted small text-uppercase mb-4">สถานะการดำเนินการ</h6>
+            <div class="row text-center position-relative g-2">
+                <div class="col">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-2 @(currentStep >= 1 ? "bg-primary text-white" : "bg-light text-muted")" style="width: 44px; height: 44px;">
+                        <i class="fa-solid fa-file-invoice"></i>
+                    </div>
+                    <div class="small fw-semibold @(currentStep >= 1 ? "text-primary" : "text-muted")">สั่งซื้อสำเร็จ</div>
+                    <small class="text-muted d-block" style="font-size: 0.7rem;">@Model.OrderedAt.ToString("dd/MM/yy HH:mm")</small>
+                </div>
+
+                <div class="col">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-2 @(currentStep >= 2 ? "bg-primary text-white" : "bg-light text-muted")" style="width: 44px; height: 44px;">
+                        <i class="fa-solid fa-receipt"></i>
+                    </div>
+                    <div class="small fw-semibold @(currentStep >= 2 ? "text-primary" : "text-muted")">ตรวจสอบสลิป</div>
+                    <small class="text-muted d-block" style="font-size: 0.7rem;">ฝ่ายบัญชี</small>
+                </div>
+
+                <div class="col">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-2 @(currentStep >= 3 ? "bg-primary text-white" : "bg-light text-muted")" style="width: 44px; height: 44px;">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <div class="small fw-semibold @(currentStep >= 3 ? "text-primary" : "text-muted")">ชำระเงินแล้ว</div>
+                    <small class="text-muted d-block" style="font-size: 0.7rem;">อนุมัติเรียบร้อย</small>
+                </div>
+
+                <div class="col">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-2 @(currentStep >= 4 ? "bg-primary text-white" : "bg-light text-muted")" style="width: 44px; height: 44px;">
+                        <i class="fa-solid fa-box-open"></i>
+                    </div>
+                    <div class="small fw-semibold @(currentStep >= 4 ? "text-primary" : "text-muted")">กำลังแพ็คของ</div>
+                    <small class="text-muted d-block" style="font-size: 0.7rem;">ฝ่ายคลังสินค้า</small>
+                </div>
+
+                <div class="col">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-2 @(currentStep >= 5 ? "bg-success text-white" : "bg-light text-muted")" style="width: 44px; height: 44px;">
+                        <i class="fa-solid fa-truck-fast"></i>
+                    </div>
+                    <div class="small fw-semibold @(currentStep >= 5 ? "text-success" : "text-muted")">จัดส่งแล้ว</div>
+                    <small class="text-muted d-block" style="font-size: 0.7rem;">พัสดุกำลังเดินทาง</small>
+                </div>
+            </div>
+
+            <!-- กล่อง Tracking Number ถ้าจัดส่งแล้ว -->
+            @if (!string.IsNullOrEmpty(Model.TrackingNumber))
+            {
+                <div class="alert alert-success mt-4 mb-0 d-flex flex-wrap align-items-center justify-content-between rounded-3">
+                    <div class="d-flex align-items-center mb-2 mb-sm-0">
+                        <i class="fa-solid fa-truck-ramp-box fs-3 me-3 text-success"></i>
+                        <div>
+                            <span class="small text-muted d-block">หมายเลขพัสดุสำหรับติดตาม (Tracking Number):</span>
+                            <span class="fs-5 fw-bold text-dark font-monospace" id="trackingText">@Model.TrackingNumber</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-outline-success btn-sm rounded-pill" onclick="copyTracking()">
+                        <i class="fa-solid fa-copy me-1"></i>คัดลอกเลขพัสดุ
+                    </button>
+                </div>
+            }
+
+            <!-- ปุ่มกดยืนยันได้รับสินค้าแล้ว (เมื่อพัสดุถูกจัดส่งแล้ว Shipped) -->
+            @if (Model.Status == "Shipped")
+            {
+                <div class="card border-0 bg-primary-subtle rounded-4 p-3 mt-3">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                        <div>
+                            <strong class="text-primary"><i class="fa-solid fa-box-open me-2"></i>พัสดุของคุณจัดส่งแล้ว!</strong>
+                            <div class="small text-muted">หากท่านได้รับสินค้าและตรวจสอบความถูกต้องแล้ว กรุณากดยืนยันเพื่อปิดคำสั่งซื้อ</div>
+                        </div>
+                        <form method="post" asp-action="ConfirmDelivery" onsubmit="return confirm('ยืนยันว่าท่านได้รับสินค้าเรียบร้อยและตรวจสอบถูกต้องแล้ว?');">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="orderId" value="@Model.OrderId" />
+                            <button type="submit" class="btn btn-success fw-bold rounded-pill px-4 shadow-sm">
+                                <i class="fa-solid fa-circle-check me-1"></i>ฉันได้รับสินค้าเรียบร้อยแล้ว
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+            else if (Model.Status == "Completed")
+            {
+                <div class="alert alert-success d-flex align-items-center rounded-4 mt-3 mb-0">
+                    <i class="fa-solid fa-circle-check fs-3 me-3 text-success"></i>
+                    <div>
+                        <strong class="text-success">คำสั่งซื้อนี้เสร็จสมบูรณ์เรียบร้อยแล้ว</strong>
+                        <div class="small text-muted">ขอบคุณที่เลือกซื้อสินค้ากับเรา หวังว่าจะได้รับความพึงพอใจในบริการครับ!</div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- ถ้าสถานะเป็น Pending Payment หรือ Invalid Slip ให้แสดงกล่องแนบสลิป -->
+    @if (Model.Status == "Pending Payment" || Model.Status == "Invalid Slip")
+    {
+        <div class="card shadow-sm border-warning rounded-4 mb-4">
+            <div class="card-header bg-warning-subtle text-dark py-3 fw-bold">
+                <i class="fa-solid fa-triangle-exclamation me-2"></i>คำสั่งซื้อนี้ยังไม่เสร็จสมบูรณ์: กรุณาแนบสลิปการโอนเงิน
+            </div>
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-7 mb-3 mb-md-0">
+                        <h6 class="fw-bold">ยอดเงินที่ต้องชำระ: <span class="text-danger fs-5">฿@Model.TotalAmount.ToString("N0")</span></h6>
+                        <p class="text-muted small mb-0">
+                            โอนเข้าบัญชี <strong>ธนาคารกสิกรไทย 012-3-45678-9 (บจก. เสื้อผ้า ดอทคอม)</strong><br />
+                            เมื่อโอนเงินแล้ว กรุณาอัปโหลดภาพสลิปด้านขวาเพื่อยืนยันคำสั่งซื้อ
+                        </p>
+                    </div>
+                    <div class="col-md-5">
+                        <form method="post" asp-action="UploadSlip" enctype="multipart/form-data">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="orderId" value="@Model.OrderId" />
+                            <div class="input-group mb-2">
+                                <input type="file" name="slipImage" class="form-control form-control-sm" accept="image/*" required />
+                                <button type="submit" class="btn btn-warning btn-sm fw-bold">
+                                    <i class="fa-solid fa-upload me-1"></i>ส่งสลิป
+                                </button>
+                            </div>
+                        </form>
+                        <form method="post" asp-action="CancelOrder" onsubmit="return confirm('ยืนยันต้องการยกเลิกคำสั่งซื้อนี้? (สต็อกสินค้าจะถูกคืนกลับเข้าร้านทันที)');" class="text-end">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="orderId" value="@Model.OrderId" />
+                            <button type="submit" class="btn btn-link text-danger p-0 small text-decoration-none">
+                                <i class="fa-solid fa-ban me-1"></i>ยกเลิกคำสั่งซื้อนี้
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- ขอคืนสินค้า / คืนเงิน (เฉพาะออเดอร์ที่ชำระเงินแล้ว) -->
+    @if (Model.Status == "Paid" || Model.Status == "Processing" || Model.Status == "Shipped" || Model.Status == "Completed")
+    {
+        <div class="mb-4">
+            <a class="small text-danger text-decoration-none" data-bs-toggle="collapse" href="#refundCollapse">
+                <i class="fa-solid fa-rotate-left me-1"></i>มีปัญหากับคำสั่งซื้อ? ขอคืนสินค้า / คืนเงิน
+            </a>
+            <div class="collapse mt-2" id="refundCollapse">
+                <form method="post" asp-action="RequestRefund" class="card card-body border-danger-subtle rounded-4"
+                      onsubmit="return confirm('ยืนยันส่งคำขอคืนสินค้า/คืนเงินไปยังฝ่ายบัญชี?');">
+                    <input type="hidden" name="orderId" value="@Model.OrderId" />
+                    <label class="form-label small fw-semibold">เหตุผลที่ต้องการคืน:</label>
+                    <textarea name="reason" rows="2" class="form-control form-control-sm mb-2" placeholder="เช่น ได้รับสินค้าผิดไซส์ / สินค้าชำรุด" required></textarea>
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">ส่งคำขอ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- รายการสินค้า -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="fw-bold mb-0">รายการสินค้าในคำสั่งซื้อ</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">สินค้า</th>
+                                    <th class="text-center">ราคา</th>
+                                    <th class="text-center">จำนวน</th>
+                                    <th class="pe-4 text-end">รวม</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Orderitems)
+                                {
+                                    var lineTotal = item.UnitPrice * item.Quantity;
+                                    <tr>
+                                        <td class="ps-4 py-3">
+                                            <div class="d-flex align-items-center">
+                                                <img src="@(string.IsNullOrEmpty(item.Variant?.Product?.ImageUrl) ? "https://placehold.co/60x75?text=Clothes" : item.Variant.Product.ImageUrl)" 
+                                                     alt="Product" class="rounded-3 me-3 object-fit-cover shadow-sm"
+                                                     style="width: 55px; height: 70px;" />
+                                                <div>
+                                                    <span class="fw-bold text-dark d-block">@item.Variant?.Product?.ProductName</span>
+                                                    <small class="text-muted">
+                                                        สี: @item.Variant?.Color | ไซส์: @item.Variant?.Size
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">฿@item.UnitPrice.ToString("N0")</td>
+                                        <td class="text-center">@item.Quantity</td>
+                                        <td class="pe-4 text-end fw-bold text-primary">฿@lineTotal.ToString("N0")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- สลิปที่แนบไว้แล้ว (ถ้ามี) -->
+            @if (!string.IsNullOrEmpty(Model.SlipImageUrl))
+            {
+                <div class="card shadow-sm border-0 rounded-4 p-4 mb-4">
+                    <h6 class="fw-bold mb-3"><i class="fa-solid fa-paperclip text-primary me-2"></i>หลักฐานการโอนเงิน (สลิป)</h6>
+                    <div class="d-inline-block border rounded-3 p-2 bg-light">
+                        <a href="@Model.SlipImageUrl" target="_blank">
+                            <img src="@Model.SlipImageUrl" alt="Payment Slip" class="img-fluid rounded" style="max-height: 250px;" />
+                        </a>
+                    </div>
+                    <small class="text-muted d-block mt-2">คลิกที่รูปเพื่อเปิดดูภาพขนาดเต็ม</small>
+                </div>
+            }
+        </div>
+
+        <!-- ข้อมูลจัดส่ง & ยอดเงิน -->
+        <div class="col-lg-4">
+            <!-- ที่อยู่จัดส่ง -->
+            <div class="card shadow-sm border-0 rounded-4 p-4 mb-4">
+                <h6 class="fw-bold mb-3 border-bottom pb-2">
+                    <i class="fa-solid fa-location-dot text-danger me-2"></i>ที่อยู่จัดส่งสินค้า
+                </h6>
+                <div class="fw-bold text-dark mb-1">@Model.Address?.ReceiverName</div>
+                <div class="text-muted small mb-2"><i class="fa-solid fa-phone me-1"></i>@Model.Address?.Phone</div>
+                <div class="text-muted small">
+                    @Model.Address?.AddressLine<br />
+                    @Model.Address?.District, @Model.Address?.Province @Model.Address?.PostalCode
+                </div>
+            </div>
+
+            <!-- สรุปการชำระเงิน -->
+            <div class="card shadow-sm border-0 rounded-4 p-4">
+                <h6 class="fw-bold mb-3 border-bottom pb-2">สรุปค่าใช้จ่าย</h6>
+
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted small">ยอดรวมสินค้า:</span>
+                    <span class="fw-semibold">฿@Model.Subtotal.ToString("N0")</span>
+                </div>
+
+                @if (Model.DiscountAmt > 0)
+                {
+                    <div class="d-flex justify-content-between mb-2 text-success small">
+                        <span>ส่วนลด (@(Model.Promotion?.PromotionName ?? Model.Coupon?.CouponCode ?? "โปรโมชั่น")):</span>
+                        <span class="fw-bold">-฿@Model.DiscountAmt.ToString("N0")</span>
+                    </div>
+                }
+
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted small">ค่าจัดส่ง:</span>
+                    <span class="fw-semibold">@(Model.ShippingFee == 0 ? "ฟรี" : $"฿{Model.ShippingFee:N0}")</span>
+                </div>
+
+                <hr class="my-2" />
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="fw-bold">ยอดสุทธิ:</span>
+                    <span class="fs-4 fw-bold text-primary">฿@Model.TotalAmount.ToString("N0")</span>
+                </div>
+
+                <div class="small text-muted bg-light p-2 rounded-3">
+                    <strong>ช่องทางชำระ:</strong> @Model.PaymentMethod
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function copyTracking() {
+            var tracking = document.getElementById("trackingText").innerText;
+            navigator.clipboard.writeText(tracking).then(function() {
+                alert("คัดลอกหมายเลขพัสดุ: " + tracking + " เรียบร้อยแล้ว");
+            });
+        }
+    </script>
+}
+

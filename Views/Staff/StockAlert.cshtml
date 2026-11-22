@@ -1,0 +1,267 @@
+@model IEnumerable<waranon_csi402.Models.Productvariant>
+
+@{
+    ViewData["Title"] = "แจ้งเตือนสต็อก & เติมสินค้า";
+    Layout = "_LayoutStaff";
+
+    string currentFilter = ViewBag.CurrentFilter ?? "low";
+    string search = ViewBag.Search ?? "";
+
+    int countOut = ViewBag.CountOutOfStock ?? 0;
+    int countLow = ViewBag.CountLowStock ?? 0;
+    int countNormal = ViewBag.CountNormalStock ?? 0;
+    int countTotal = ViewBag.CountTotalVariants ?? 0;
+    int totalUnits = ViewBag.TotalInventoryUnits ?? 0;
+}
+
+<!-- Notification Alert -->
+@if (!string.IsNullOrEmpty(ViewBag.Status))
+{
+    <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm border-0 d-flex align-items-center mb-4" role="alert">
+        <i class="fa-solid fa-circle-check fs-4 me-3 text-success"></i>
+        <div class="flex-grow-1">
+            <span class="fw-medium">@ViewBag.Status</span>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Page Header -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1 text-dark">
+            <i class="fa-solid fa-boxes-stacked text-success me-2"></i>สต็อกสินค้า & เติมของ
+        </h3>
+        <p class="text-secondary small mb-0">
+            ตรวจสอบจำนวนสต็อกคงเหลือแต่ละสี/ไซส์ และกดเติมสินค้าเข้าคลังได้ทันที
+        </p>
+    </div>
+    <div class="d-flex gap-2 mt-2 mt-sm-0">
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm text-nowrap">
+            <i class="fa-solid fa-arrow-left me-1"></i>กลับไปรายการออเดอร์
+        </a>
+    </div>
+</div>
+
+<!-- 3 Clean Summary Cards -->
+<div class="row g-3 mb-4">
+    <!-- Card 1: ใกล้หมดสต็อก (โฟกัสหลัก) -->
+    <div class="col-md-4 col-sm-6">
+        <a asp-action="StockAlert" asp-route-filter="low" class="text-decoration-none">
+            <div class="card card-custom p-3 @(currentFilter == "low" ? "border-2 border-warning shadow" : "")">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="badge bg-warning text-dark px-2 py-1 mb-2">ต้องเติมของ</span>
+                        <h6 class="text-secondary fw-semibold mb-1">สต็อกใกล้หมด (≤ 10 ชิ้น)</h6>
+                        <h2 class="fw-bold text-dark mb-0">@countLow <span class="fs-6 fw-normal text-muted">SKU</span></h2>
+                    </div>
+                    <div class="rounded-circle bg-warning bg-opacity-10 text-warning d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                        <i class="fa-solid fa-triangle-exclamation fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- Card 2: หมดสต็อก -->
+    <div class="col-md-4 col-sm-6">
+        <a asp-action="StockAlert" asp-route-filter="out" class="text-decoration-none">
+            <div class="card card-custom p-3 @(currentFilter == "out" ? "border-2 border-danger shadow" : "")">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="badge bg-danger text-white px-2 py-1 mb-2">ของหมด</span>
+                        <h6 class="text-secondary fw-semibold mb-1">หมดสต็อก (0 ชิ้น)</h6>
+                        <h2 class="fw-bold text-danger mb-0">@countOut <span class="fs-6 fw-normal text-muted">SKU</span></h2>
+                    </div>
+                    <div class="rounded-circle bg-danger bg-opacity-10 text-danger d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                        <i class="fa-solid fa-ban fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- Card 3: สต็อกรวมในคลัง -->
+    <div class="col-md-4 col-sm-12">
+        <a asp-action="StockAlert" asp-route-filter="all" class="text-decoration-none">
+            <div class="card card-custom p-3 @(currentFilter == "all" ? "border-2 border-primary shadow" : "")">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="badge bg-primary text-white px-2 py-1 mb-2">ภาพรวมคลัง</span>
+                        <h6 class="text-secondary fw-semibold mb-1">สต็อกรวมทุกรายการ</h6>
+                        <h2 class="fw-bold text-dark mb-0">@totalUnits.ToString("N0") <span class="fs-6 fw-normal text-muted">ชิ้น (@countTotal SKU)</span></h2>
+                    </div>
+                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                        <i class="fa-solid fa-warehouse fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Main Table Card -->
+<div class="card card-custom shadow-sm mb-4">
+    <!-- Filter Header -->
+    <div class="card-header bg-white border-bottom p-3">
+        <div class="row align-items-center g-3">
+            <div class="col-lg-7 col-md-12">
+                <ul class="nav nav-pills gap-1">
+                    <li class="nav-item">
+                        <a class="nav-link rounded-pill py-2 px-3 @(currentFilter == "low" ? "active bg-warning text-dark fw-bold" : "text-secondary")"
+                           asp-action="StockAlert" asp-route-filter="low" asp-route-search="@search">
+                            <i class="fa-solid fa-triangle-exclamation me-1"></i>ใกล้หมด (≤10)
+                            <span class="badge @(currentFilter == "low" ? "bg-dark text-white" : "bg-warning text-dark") ms-1">@countLow</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link rounded-pill py-2 px-3 @(currentFilter == "out" ? "active bg-danger text-white fw-bold" : "text-secondary")"
+                           asp-action="StockAlert" asp-route-filter="out" asp-route-search="@search">
+                            <i class="fa-solid fa-ban me-1"></i>หมดสต็อก
+                            <span class="badge @(currentFilter == "out" ? "bg-white text-danger" : "bg-danger text-white") ms-1">@countOut</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link rounded-pill py-2 px-3 @(currentFilter == "normal" ? "active bg-success text-white fw-bold" : "text-secondary")"
+                           asp-action="StockAlert" asp-route-filter="normal" asp-route-search="@search">
+                            <i class="fa-solid fa-check me-1"></i>สต็อกพร้อมขาย
+                            <span class="badge @(currentFilter == "normal" ? "bg-white text-success" : "bg-success text-white") ms-1">@countNormal</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link rounded-pill py-2 px-3 @(currentFilter == "all" ? "active bg-dark text-white fw-bold" : "text-secondary")"
+                           asp-action="StockAlert" asp-route-filter="all" asp-route-search="@search">
+                            <i class="fa-solid fa-list me-1"></i>ทั้งหมด (@countTotal)
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Search Form -->
+            <div class="col-lg-5 col-md-12">
+                <form method="get" asp-action="StockAlert">
+                    <input type="hidden" name="filter" value="@currentFilter" />
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0">
+                            <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                        </span>
+                        <input type="text" name="search" value="@search" class="form-control bg-light border-start-0"
+                               placeholder="ค้นหาชื่อสินค้า, สี, ไซส์..." />
+                        @if (!string.IsNullOrEmpty(search))
+                        {
+                            <a asp-action="StockAlert" asp-route-filter="@currentFilter" class="btn btn-outline-secondary">
+                                <i class="fa-solid fa-xmark"></i>
+                            </a>
+                        }
+                        <button type="submit" class="btn btn-success" style="background-color: #2d6a4f; border-color: #2d6a4f;">ค้นหา</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive">
+        <table class="table table-custom align-middle">
+            <thead>
+                <tr>
+                    <th style="width: 70px;" class="text-nowrap">รูป</th>
+                    <th style="min-width: 220px;" class="text-nowrap">ชื่อสินค้า / หมวดหมู่</th>
+                    <th style="width: 150px;" class="text-center text-nowrap">ตัวเลือก (สี / ไซส์)</th>
+                    <th style="width: 140px;" class="text-center text-nowrap">สต็อกคงเหลือ</th>
+                    <th style="width: 180px;" class="text-end text-nowrap">เติมสต็อกสินค้า</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var variant in Model)
+                    {
+                        var imgUrl = variant.ImageUrl ?? variant.Product?.ImageUrl ?? "https://placehold.co/80x80?text=No+Img";
+                        <tr>
+                            <!-- Image -->
+                            <td>
+                                <img src="@imgUrl" class="rounded border shadow-sm" style="width: 48px; height: 48px; object-fit: cover;" alt="Variant" />
+                            </td>
+
+                            <!-- Product Name & Category -->
+                            <td>
+                                <div class="fw-bold text-dark mb-1">
+                                    @(variant.Product?.ProductName ?? "สินค้าเสื้อผ้า")
+                                </div>
+                                <div class="text-muted small">
+                                    <span class="badge bg-light text-secondary border">@(variant.Product?.Category?.CategoryName ?? "ทั่วไป")</span>
+                                    <span class="ms-1 font-monospace">SKU #@variant.VariantId</span>
+                                </div>
+                            </td>
+
+                            <!-- Color & Size -->
+                            <td class="text-center">
+                                <div class="fw-semibold text-dark">@variant.Color</div>
+                                <span class="badge bg-light text-dark border mt-1">Size: @variant.Size</span>
+                            </td>
+
+                            <!-- Stock Count -->
+                            <td class="text-center">
+                                @if (variant.Stock == 0)
+                                {
+                                    <span class="badge bg-danger px-2 py-1 rounded-pill">
+                                        <i class="fa-solid fa-circle-xmark me-1"></i>หมดสต็อก (0)
+                                    </span>
+                                }
+                                else if (variant.Stock <= 10)
+                                {
+                                    <span class="badge bg-warning text-dark px-2 py-1 rounded-pill">
+                                        <i class="fa-solid fa-triangle-exclamation me-1"></i>เหลือ @variant.Stock ชิ้น
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success px-2 py-1 rounded-pill">
+                                        <i class="fa-solid fa-check me-1"></i>@variant.Stock ชิ้น
+                                    </span>
+                                }
+                            </td>
+
+                            <!-- Quick Restock Form (Input Only) -->
+                            <td class="text-end">
+                                <form asp-action="QuickRestock" method="post" class="d-inline-flex align-items-center justify-content-end">
+                                    <input type="hidden" name="variantId" value="@variant.VariantId" />
+                                    <input type="hidden" name="returnFilter" value="@currentFilter" />
+
+                                    <!-- Custom Amount Input -->
+                                    <div class="input-group input-group-sm" style="width: 140px;">
+                                        <input type="number" name="addStock" class="form-control text-center" min="1" max="9999" placeholder="ระบุจำนวน" required />
+                                        <button type="submit" class="btn btn-success px-2" style="background-color: #2d6a4f; border-color: #2d6a4f;" title="เติมสต็อก">
+                                            <i class="fa-solid fa-plus me-1"></i>เติม
+                                        </button>
+                                    </div>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <div class="py-4">
+                                <i class="fa-solid fa-circle-check fs-1 text-success opacity-50 mb-3 d-block"></i>
+                                <h5 class="text-dark fw-bold">ไม่มีสินค้าที่สต็อกต่ำกว่าเกณฑ์</h5>
+                                <p class="text-secondary small mb-3">
+                                    @(string.IsNullOrEmpty(search) ? "สินค้าในคลังอยู่ในระดับปกติทั้งหมด" : $"ไม่พบผลการค้นหาสำหรับ \"{search}\"")
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Footer -->
+    <div class="card-footer bg-white border-top py-2 px-3 text-secondary small d-flex justify-content-between align-items-center">
+        <span>จำนวนตัวเลือกสินค้า: <strong>@(Model?.Count() ?? 0)</strong> รายการ</span>
+        <span>เสื้อผ้า.com Inventory</span>
+    </div>
+</div>

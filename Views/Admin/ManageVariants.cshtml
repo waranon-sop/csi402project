@@ -1,0 +1,277 @@
+@model waranon_csi402.Models.Product
+
+@{
+    ViewData["Title"] = "จัดการ SKU (สี/ไซส์/สต็อก) - " + Model.ProductName;
+    Layout = "_LayoutAdmin";
+    var variants = Model.Productvariants?.OrderBy(v => v.Color).ThenBy(v => v.Size).ToList() ?? new List<waranon_csi402.Models.Productvariant>();
+    var totalStock = variants.Sum(v => v.Stock);
+}
+
+<!-- Page Header & Breadcrumb -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a asp-action="ProductList" class="text-decoration-none">จัดการสินค้า</a></li>
+                <li class="breadcrumb-item active" aria-current="page">จัดการ SKU (@Model.ProductName)</li>
+            </ol>
+        </nav>
+        <h3 class="fw-bold mb-0 text-dark">
+            <i class="fa-solid fa-layer-group text-primary me-2"></i>จัดการตัวเลือกสินค้า (สี & ไซส์)
+        </h3>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="EditProduct" asp-route-id="@Model.ProductId" class="btn btn-outline-warning btn-sm rounded-pill px-3">
+            <i class="fa-solid fa-pen me-1"></i>แก้ไขข้อมูลสินค้า
+        </a>
+        <a asp-action="ProductList" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="fa-solid fa-arrow-left me-1"></i>กลับหน้ารายการสินค้า
+        </a>
+    </div>
+</div>
+
+@if (ViewBag.Status != null)
+{
+    <div class="alert alert-info alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
+        <i class="fa-solid fa-circle-info me-2"></i>@ViewBag.Status
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- การ์ดสรุปข้อมูลสินค้าหลัก -->
+<div class="card card-custom p-3 mb-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div class="d-flex align-items-center">
+            <div class="rounded-3 overflow-hidden bg-light border d-flex align-items-center justify-content-center me-3" style="width: 64px; height: 64px;">
+                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    <img src="@Model.ImageUrl" alt="@Model.ProductName" style="width:100%; height:100%; object-fit:cover;" />
+                }
+                else
+                {
+                    <i class="fa-solid fa-shirt text-muted fa-2x"></i>
+                }
+            </div>
+            <div>
+                <h5 class="fw-bold mb-1 text-dark">@Model.ProductName</h5>
+                <div class="d-flex flex-wrap align-items-center gap-2 text-muted small">
+                    <span class="badge badge-soft-secondary">@(Model.Category?.CategoryName ?? "-")</span>
+                    <span>•</span>
+                    <span>ราคาตั้งต้น: <strong class="text-danger">฿@Model.BasePrice.ToString("N0")</strong></span>
+                    <span>•</span>
+                    <span>สถานะ: @(Model.IsActive == true || Model.IsActive == null ? "🟢 เปิดขาย" : "⚪ ปิดการขาย")</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-3 text-center">
+            <div class="bg-light px-3 py-2 rounded-3 border">
+                <small class="text-muted d-block" style="font-size: 0.75rem;">จำนวน SKU</small>
+                <strong class="text-primary fs-5">@variants.Count</strong>
+            </div>
+            <div class="bg-light px-3 py-2 rounded-3 border">
+                <small class="text-muted d-block" style="font-size: 0.75rem;">สต็อกคงเหลือรวม</small>
+                <strong class="text-success fs-5">@totalStock ชิ้น</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <!-- ฝั่งซ้าย: ฟอร์มเพิ่ม SKU ใหม่ -->
+    <div class="col-lg-4">
+        <div class="card card-custom sticky-top" style="top: 80px;">
+            <div class="card-header bg-white py-3 px-4 border-bottom">
+                <h6 class="mb-0 fw-bold text-dark">
+                    <i class="fa-solid fa-plus-circle text-primary me-2"></i>เพิ่มตัวเลือก (SKU) ใหม่
+                </h6>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="AddVariant" asp-controller="Admin" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="productId" value="@Model.ProductId" />
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark">สี (Color) <span class="text-danger">*</span></label>
+                        <input type="text" name="color" class="form-control" placeholder="เช่น ดำ, ขาว, กรม, ครีม" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark">ไซส์ (Size) <span class="text-danger">*</span></label>
+                        <input type="text" name="size" class="form-control" placeholder="เช่น S, M, L, XL, 2XL, Free Size" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark">จำนวนสต็อก (Stock) <span class="text-danger">*</span></label>
+                        <input type="number" min="0" name="stock" value="10" class="form-control" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark">ราคาบวกเพิ่ม (Extra Price บาท)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted">+฿</span>
+                            <input type="number" step="0.01" min="0" name="extraPrice" value="0.00" class="form-control" />
+                        </div>
+                        <div class="form-text" style="font-size: 0.75rem;">ระบุ 0 หากราคาเท่าราคาตั้งต้น</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-semibold text-dark">ลิงก์ภาพเฉพาะสีนี้ (Optional)</label>
+                        <input type="url" name="imageUrl" class="form-control form-control-sm" placeholder="URL รูปภาพเฉพาะสีนี้ (ถ้ามี)" />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2 rounded-pill fw-bold shadow-sm">
+                        <i class="fa-solid fa-plus me-1"></i> เพิ่ม SKU นี้
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ฝั่งขวา: รายการ SKU ทั้งหมด -->
+    <div class="col-lg-8">
+        <div class="card card-custom overflow-hidden">
+            <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center border-bottom">
+                <h6 class="mb-0 fw-bold text-dark">
+                    <i class="fa-solid fa-list-check text-primary me-2"></i>รายการ SKU ทั้งหมด (@variants.Count รายการ)
+                </h6>
+                <span class="badge badge-soft-success px-3 py-1 rounded-pill small">
+                    สต็อกพร้อมจำหน่าย @totalStock ชิ้น
+                </span>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-custom table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width: 60px;">#</th>
+                                <th>สี</th>
+                                <th>ไซส์</th>
+                                <th>ราคาขายจริง</th>
+                                <th>สต็อกคงเหลือ</th>
+                                <th class="text-center" style="width: 140px;">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!variants.Any())
+                            {
+                                <tr>
+                                    <td colspan="6" class="text-center py-5 text-muted">
+                                        <i class="fa-solid fa-layer-group fa-3x mb-3 d-block opacity-50"></i>
+                                        <p class="mb-0">ยังไม่มีตัวเลือกสินค้า กรุณาเพิ่ม SKU จากแบบฟอร์มด้านซ้าย</p>
+                                    </td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var v in variants)
+                                {
+                                    var finalPrice = Model.BasePrice + v.ExtraPrice;
+                                    <tr>
+                                        <td class="text-muted small">#@v.VariantId</td>
+                                        <td>
+                                            <span class="badge bg-light text-dark border px-2 py-1 rounded-pill">
+                                                <i class="fa-solid fa-circle text-primary me-1" style="font-size: 0.5rem;"></i>@v.Color
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <strong class="text-dark fs-6">@v.Size</strong>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold text-danger">฿@finalPrice.ToString("N0")</span>
+                                            @if (v.ExtraPrice > 0)
+                                            {
+                                                <small class="text-muted d-block" style="font-size:0.75rem;">(+฿@v.ExtraPrice.ToString("N0"))</small>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (v.Stock > 10)
+                                            {
+                                                <span class="badge badge-soft-success rounded-pill px-3 py-1">@v.Stock ชิ้น</span>
+                                            }
+                                            else if (v.Stock > 0)
+                                            {
+                                                <span class="badge badge-soft-warning rounded-pill px-3 py-1">เหลือน้อย (@v.Stock)</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge badge-soft-danger rounded-pill px-3 py-1">หมด (0)</span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="d-flex justify-content-center gap-1">
+                                                <!-- ปุ่มแก้ไข Modal -->
+                                                <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-2" 
+                                                        data-bs-toggle="modal" data-bs-target="#editModal_@v.VariantId" title="แก้ไข SKU">
+                                                    <i class="fa-solid fa-pen"></i>
+                                                </button>
+
+                                                <!-- ฟอร์มลบ SKU -->
+                                                <form asp-action="DeleteVariant" asp-controller="Admin" method="post" class="d-inline"
+                                                      onsubmit="return confirm('ยืนยันว่าต้องการลบ SKU สี @v.Color ไซส์ @v.Size หรือไม่?');">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="variantId" value="@v.VariantId" />
+                                                    <input type="hidden" name="productId" value="@Model.ProductId" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2" title="ลบ SKU">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+
+                                            <!-- Modal แก้ไข SKU แต่ละรายการ -->
+                                            <div class="modal fade text-start" id="editModal_@v.VariantId" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content border-0 shadow-lg rounded-4">
+                                                        <div class="modal-header bg-light">
+                                                            <h6 class="modal-title fw-bold text-dark">
+                                                                <i class="fa-solid fa-pen-to-square text-warning me-2"></i>แก้ไข SKU: @v.Color / @v.Size
+                                                            </h6>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <form asp-action="EditVariant" asp-controller="Admin" method="post">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="variantId" value="@v.VariantId" />
+                                                            <input type="hidden" name="productId" value="@Model.ProductId" />
+
+                                                            <div class="modal-body p-4">
+                                                                <div class="mb-3">
+                                                                    <label class="form-label small fw-semibold text-dark">สี</label>
+                                                                    <input type="text" name="color" value="@v.Color" class="form-control" required />
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label class="form-label small fw-semibold text-dark">ไซส์</label>
+                                                                    <input type="text" name="size" value="@v.Size" class="form-control" required />
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label class="form-label small fw-semibold text-dark">จำนวนสต็อกคงเหลือ</label>
+                                                                    <input type="number" min="0" name="stock" value="@v.Stock" class="form-control" required />
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label class="form-label small fw-semibold text-dark">ราคาบวกเพิ่ม (บาท)</label>
+                                                                    <input type="number" step="0.01" min="0" name="extraPrice" value="@v.ExtraPrice" class="form-control" />
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label class="form-label small fw-semibold text-dark">ลิงก์ภาพเฉพาะสีนี้</label>
+                                                                    <input type="url" name="imageUrl" value="@v.ImageUrl" class="form-control" />
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer bg-light">
+                                                                <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">ยกเลิก</button>
+                                                                <button type="submit" class="btn btn-warning btn-sm rounded-pill px-4 text-dark fw-bold">บันทึกการแก้ไข</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

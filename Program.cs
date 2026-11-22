@@ -12,7 +12,25 @@ builder.Services.AddDbContext<Csi402dbContext>(
     )
 );
 
+// ลงทะเบียนระบบอัตโนมัติทำงานเบื้องหลัง (Auto-cancel & Restock)
+builder.Services.AddHostedService<waranon_csi402.Services.OrderAutomationService>();
+
 var app = builder.Build();
+
+// Seed ข้อมูลเสื้อผ้าเริ่มต้นหากฐานข้อมูลยังว่างเปล่า
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var db = scope.ServiceProvider.GetRequiredService<Csi402dbContext>();
+        DbInitializer.EnsureExtraTables(db); // สร้างตาราง PromotionProducts, Banners ถ้ายังไม่มี
+        DbInitializer.Seed(db);
+    }
+    catch
+    {
+        // ข้ามหากเชื่อมต่อไม่ได้ ให้รันผ่าน MySQL Workbench แทนได้
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

@@ -1,15 +1,303 @@
 @{
-    ViewData["Title"] = "Admin Dashboard";
+    ViewData["Title"] = "แดชบอร์ดภาพรวม";
     Layout = "_LayoutAdmin";
+    var recentProducts = ViewBag.RecentProducts as List<waranon_csi402.Models.Product> ?? new List<waranon_csi402.Models.Product>();
+    var recentOrders = ViewBag.RecentOrders as List<waranon_csi402.Models.Order> ?? new List<waranon_csi402.Models.Order>();
 }
 
-<div class="row">
-    <div class="col-md-12">
-        <h2 class="fw-bold mb-4">ยินดีต้อนรับสู่ระบบหลังบ้าน (Admin)</h2>
-        <div class="card shadow-sm border-0">
-            <div class="card-body">
-                <p>นี่คือตัวอย่างหน้าจอของ Admin ที่ใช้ <code>_LayoutAdmin</code> ครับ</p>
+<!-- ส่วนหัวหน้าแดชบอร์ด -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div>
+        <h3 class="fw-bold mb-1 text-dark">
+            <i class="fa-solid fa-gauge-high text-primary me-2"></i>แดชบอร์ดภาพรวม
+        </h3>
+        <p class="text-muted small mb-0">
+            ยินดีต้อนรับคุณ <strong>@(TempData.Peek("Name") ?? "Admin")</strong> • สรุปข้อมูลร้านค้า เสื้อผ้า.com
+        </p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <a asp-action="AddProduct" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm">
+            <i class="fa-solid fa-plus me-1"></i>เพิ่มสินค้าใหม่
+        </a>
+    </div>
+</div>
+
+<!-- การ์ดสรุปตัวเลข 4 ช่อง -->
+<div class="row g-3 mb-4">
+    <!-- สินค้าทั้งหมด -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="card card-custom h-100 p-3 position-relative overflow-hidden">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <span class="text-muted small fw-semibold">สินค้าทั้งหมด</span>
+                    <h2 class="fw-bold text-dark mt-1 mb-0">
+                        @(ViewBag.TotalProducts ?? 0) <span class="fs-6 fw-normal text-muted">แบบ</span>
+                    </h2>
+                </div>
+                <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-3">
+                    <i class="fa-solid fa-shirt fs-4"></i>
+                </div>
+            </div>
+            <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center">
+                <span class="small text-muted">พร้อมขาย @(ViewBag.TotalStock ?? 0) ชิ้น</span>
+                <a asp-action="ProductList" class="text-primary small fw-semibold text-decoration-none">
+                    ดูสินค้า <i class="fa-solid fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <a asp-action="ProductList" class="stretched-link"></a>
+        </div>
+    </div>
+
+    <!-- หมวดหมู่เสื้อผ้า -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="card card-custom h-100 p-3 position-relative overflow-hidden">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <span class="text-muted small fw-semibold">หมวดหมู่เสื้อผ้า</span>
+                    <h2 class="fw-bold text-dark mt-1 mb-0">@(ViewBag.TotalCategories ?? 0) <span class="fs-6 fw-normal text-muted">หมวดหมู่</span></h2>
+                </div>
+                <div class="bg-warning bg-opacity-10 text-warning rounded-3 p-3">
+                    <i class="fa-solid fa-tags fs-4"></i>
+                </div>
+            </div>
+            <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center">
+                <span class="small text-muted">จัดกลุ่มสินค้า</span>
+                <a asp-action="CategoryList" class="text-warning small fw-semibold text-decoration-none">
+                    จัดการหมวดหมู่ <i class="fa-solid fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <a asp-action="CategoryList" class="stretched-link"></a>
+        </div>
+    </div>
+
+    <!-- คำสั่งซื้อ -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="card card-custom h-100 p-3 position-relative overflow-hidden">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <span class="text-muted small fw-semibold">คำสั่งซื้อทั้งหมด</span>
+                    <h2 class="fw-bold text-dark mt-1 mb-0">@(ViewBag.TotalOrders ?? 0) <span class="fs-6 fw-normal text-muted">ออเดอร์</span></h2>
+                </div>
+                <div class="bg-success bg-opacity-10 text-success rounded-3 p-3">
+                    <i class="fa-solid fa-cart-shopping fs-4"></i>
+                </div>
+            </div>
+            <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center">
+                <span class="small text-muted">รายการทั้งหมด</span>
+                <a asp-action="OrderList" class="text-success small fw-semibold text-decoration-none">
+                    ดูออเดอร์ <i class="fa-solid fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <a asp-action="OrderList" class="stretched-link"></a>
+        </div>
+    </div>
+
+    <!-- ผู้ใช้งานระบบ -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="card card-custom h-100 p-3 position-relative overflow-hidden">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <span class="text-muted small fw-semibold">ผู้ใช้งานในระบบ</span>
+                    <h2 class="fw-bold text-dark mt-1 mb-0">@(ViewBag.TotalUsers ?? 0) <span class="fs-6 fw-normal text-muted">คน</span></h2>
+                </div>
+                <div class="bg-info bg-opacity-10 text-info rounded-3 p-3">
+                    <i class="fa-solid fa-users fs-4"></i>
+                </div>
+            </div>
+            <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center">
+                <span class="small text-muted">สมาชิกร้าน</span>
+                <a asp-action="UserList" class="text-info small fw-semibold text-decoration-none">
+                    รายชื่อผู้ใช้ <i class="fa-solid fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <a asp-action="UserList" class="stretched-link"></a>
+        </div>
+    </div>
+</div>
+
+<!-- Main Body: 2 คอลัมน์ -->
+<div class="row g-4">
+    <!-- ฝั่งซ้าย: สินค้าล่าสุด 5 รายการ -->
+    <div class="col-lg-7">
+        <div class="card card-custom overflow-hidden mb-4 shadow-sm">
+            <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center border-bottom">
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="fa-solid fa-shirt text-primary me-2"></i>สินค้าล่าสุดในร้าน
+                    </h5>
+                    <small class="text-muted">รายการสินค้าที่เพิ่มเข้ามาล่าสุด</small>
+                </div>
+                <a asp-action="ProductList" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                    ดูทั้งหมด <i class="fa-solid fa-chevron-right ms-1"></i>
+                </a>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 60px;">ภาพ</th>
+                                <th>ชื่อสินค้า</th>
+                                <th>หมวดหมู่</th>
+                                <th>ราคา</th>
+                                <th class="text-center" style="width: 110px;">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!recentProducts.Any())
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">
+                                        ยังไม่มีรายการสินค้าในระบบ
+                                    </td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var p in recentProducts)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="rounded overflow-hidden bg-light border d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                                                @if (!string.IsNullOrEmpty(p.ImageUrl))
+                                                {
+                                                    <img src="@p.ImageUrl" alt="@p.ProductName" style="width: 100%; height: 100%; object-fit: cover;" 
+                                                         onerror="this.style.display='none'; this.nextElementSibling.classList.remove('d-none');" />
+                                                    <i class="fa-solid fa-shirt text-muted d-none"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fa-solid fa-shirt text-muted"></i>
+                                                }
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="fw-bold text-dark">@p.ProductName</div>
+                                            <small class="text-muted">รหัส: #@p.ProductId</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-dark border">
+                                                @(p.Category?.CategoryName ?? "-")
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold text-dark">฿@p.BasePrice.ToString("N0")</span>
+                                        </td>
+                                        <td class="text-center text-nowrap">
+                                            <a asp-action="ManageVariants" asp-route-productId="@p.ProductId" 
+                                               class="btn btn-sm btn-outline-primary rounded-pill px-2 py-1" title="จัดการ SKU">
+                                                <i class="fa-solid fa-layer-group me-1"></i>SKU
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
-</div>  
+
+    <!-- ฝั่งขวา: คำสั่งซื้อล่าสุด 5 รายการ (มีประโยชน์จริง แทนเมนูลัดที่ซ้ำซ้อน) -->
+    <div class="col-lg-5">
+        <div class="card card-custom overflow-hidden mb-4 shadow-sm">
+            <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center border-bottom">
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="fa-solid fa-cart-shopping text-success me-2"></i>คำสั่งซื้อล่าสุด
+                    </h5>
+                    <small class="text-muted">รายการสั่งซื้อที่เข้ามาล่าสุด</small>
+                </div>
+                <a asp-action="OrderList" class="btn btn-outline-success btn-sm rounded-pill px-3">
+                    ดูทั้งหมด <i class="fa-solid fa-chevron-right ms-1"></i>
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 70px;">ออเดอร์</th>
+                                <th>ลูกค้า</th>
+                                <th>สถานะ</th>
+                                <th class="text-end">ยอดรวม</th>
+                                <th class="text-center" style="width: 60px;">เปิด</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!recentOrders.Any())
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">
+                                        ยังไม่มีคำสั่งซื้อในระบบ
+                                    </td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var o in recentOrders)
+                                {
+                                    <tr>
+                                        <td class="fw-bold text-primary text-center">
+                                            #@o.OrderId
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold text-dark text-truncate" style="max-width: 120px;">
+                                                @(o.Address?.ReceiverName ?? (o.User?.FirstName + " " + o.User?.LastName))
+                                            </div>
+                                            <small class="text-muted">@o.OrderedAt.ToString("dd/MM HH:mm")</small>
+                                        </td>
+                                        <td>
+                                            @if (o.Status == "Pending Payment")
+                                            {
+                                                <span class="badge bg-warning text-dark text-nowrap">รอชำระ</span>
+                                            }
+                                            else if (o.Status == "Verifying Slip")
+                                            {
+                                                <span class="badge bg-info text-dark text-nowrap">ตรวจสลิป</span>
+                                            }
+                                            else if (o.Status == "Paid")
+                                            {
+                                                <span class="badge bg-success text-nowrap">ชำระแล้ว</span>
+                                            }
+                                            else if (o.Status == "Processing")
+                                            {
+                                                <span class="badge bg-primary text-nowrap">กำลังแพ็ค</span>
+                                            }
+                                            else if (o.Status == "Shipped")
+                                            {
+                                                <span class="badge bg-secondary text-nowrap">จัดส่งแล้ว</span>
+                                            }
+                                            else if (o.Status == "Completed")
+                                            {
+                                                <span class="badge bg-dark text-nowrap">สำเร็จ</span>
+                                            }
+                                            else if (o.Status == "Cancelled")
+                                            {
+                                                <span class="badge bg-danger text-nowrap">ยกเลิก</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary text-nowrap">@o.Status</span>
+                                            }
+                                        </td>
+                                        <td class="text-end fw-bold text-dark text-nowrap">
+                                            ฿@o.TotalAmount.ToString("N0")
+                                        </td>
+                                        <td class="text-center text-nowrap">
+                                            <a asp-action="AdminOrderDetail" asp-route-id="@o.OrderId" class="btn btn-sm btn-outline-primary rounded-circle p-1" style="width: 28px; height: 28px; line-height: 1;" title="ดูรายละเอียด">
+                                                <i class="fa-solid fa-arrow-right"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

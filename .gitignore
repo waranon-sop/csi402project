@@ -480,3 +480,7 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# สลิปโอนเงินของลูกค้า (ข้อมูลการเงินส่วนบุคคล) ห้ามขึ้น Git
+App_Data/
+wwwroot/images/slips/

@@ -1,15 +1,354 @@
+@model IEnumerable<waranon_csi402.Models.Order>
+
 @{
-    ViewData["Title"] = "Staff Dashboard";
+    ViewData["Title"] = "จัดการคำสั่งซื้อและจัดส่งสินค้า";
     Layout = "_LayoutStaff";
+
+    string currentTab = ViewBag.CurrentTab ?? "paid";
+    string search = ViewBag.Search ?? "";
+
+    int countPaid = ViewBag.CountPaid ?? 0;
+    int countProcessing = ViewBag.CountProcessing ?? 0;
+    int countShipped = ViewBag.CountShipped ?? 0;
+    int countAll = ViewBag.CountAllStaff ?? 0;
+    int countLowStock = ViewBag.CountLowStock ?? 0;
 }
 
-<div class="row">
-    <div class="col-md-12">
-        <h2 class="fw-bold mb-4 text-success">ยินดีต้อนรับพนักงาน (Staff)</h2>
-        <div class="card shadow-sm border-0">
-            <div class="card-body">
-                <p>นี่คือตัวอย่างหน้าจอของ Staff ที่ใช้ <code>_LayoutStaff</code> ครับ</p>
+<!-- Notification Alert -->
+@if (!string.IsNullOrEmpty(ViewBag.Status))
+{
+    <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm border-0 d-flex align-items-center mb-4" role="alert">
+        <i class="fa-solid fa-circle-check fs-4 me-3 text-success"></i>
+        <div class="flex-grow-1">
+            <span class="fw-medium">@ViewBag.Status</span>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Page Header Title -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1 text-dark">
+            <i class="fa-solid fa-boxes-packing text-success me-2"></i>จัดการคำสั่งซื้อ & แพ็คสินค้า
+        </h3>
+        <p class="text-secondary small mb-0">
+            ขั้นตอนทำงาน: <strong>1. ตรวจรายการสินค้า</strong> ➔ <strong>2. หยิบแพ็คใส่กล่อง</strong> ➔ <strong>3. บันทึกเลขพัสดุจัดส่ง</strong>
+        </p>
+    </div>
+    <div class="d-flex gap-2 mt-2 mt-sm-0">
+        @if (countLowStock > 0)
+        {
+            <a asp-action="StockAlert" class="btn btn-outline-danger btn-sm rounded-pill px-3 shadow-sm text-nowrap">
+                <i class="fa-solid fa-triangle-exclamation me-1"></i>เตือนสต็อกใกล้หมด (@countLowStock)
+            </a>
+        }
+        <a asp-action="Index" asp-route-tab="@currentTab" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm text-nowrap" title="รีเฟรชข้อมูล">
+            <i class="fa-solid fa-rotate-right me-1"></i>รีเฟรช
+        </a>
+    </div>
+</div>
+
+<!-- Main Table Card -->
+<div class="card card-custom shadow-sm mb-4">
+    <!-- Filter Tabs & Search Header -->
+    <div class="card-header bg-white border-bottom p-3">
+        <div class="row align-items-center g-3">
+            <!-- Navigation Tabs -->
+            <div class="col-lg-7 col-md-12">
+                <ul class="nav nav-pills gap-1 flex-wrap">
+                    <li class="nav-item">
+                        <a class="nav-link rounded-pill py-2 px-3 text-nowrap @(currentTab == "paid" ? "active bg-warning text-dark fw-bold" : "text-secondary")"
+                           asp-action="Index" asp-route-tab="paid" asp-route-search="@search">
+                            <i class="fa-solid fa-box-open me-1"></i>รอแพ็คสินค้า
+                            <span class="badge @(currentTab == "paid" ? "bg-dark text-white" : "bg-warning text-dark") ms-1">@countPaid</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link rounded-pill py-2 px-3 text-nowrap @(currentTab == "processing" ? "active bg-info text-dark fw-bold" : "text-secondary")"
+                           asp-action="Index" asp-route-tab="processing" asp-route-search="@search">
+                            <i class="fa-solid fa-truck-ramp-box me-1"></i>กำลังแพ็ค / รอเลขพัสดุ
+                            <span class="badge @(currentTab == "processing" ? "bg-dark text-white" : "bg-info text-dark") ms-1">@countProcessing</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link rounded-pill py-2 px-3 text-nowrap @(currentTab == "shipped" ? "active bg-success text-white fw-bold" : "text-secondary")"
+                           asp-action="Index" asp-route-tab="shipped" asp-route-search="@search">
+                            <i class="fa-solid fa-truck-fast me-1"></i>จัดส่งแล้ว
+                            <span class="badge @(currentTab == "shipped" ? "bg-white text-success" : "bg-success text-white") ms-1">@countShipped</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link rounded-pill py-2 px-3 text-nowrap @(currentTab == "all" ? "active bg-dark text-white fw-bold" : "text-secondary")"
+                           asp-action="Index" asp-route-tab="all" asp-route-search="@search">
+                            <i class="fa-solid fa-list-check me-1"></i>ทั้งหมด
+                            <span class="badge @(currentTab == "all" ? "bg-white text-dark" : "bg-secondary") ms-1">@countAll</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Search Field -->
+            <div class="col-lg-5 col-md-12">
+                <form method="get" asp-action="Index">
+                    <input type="hidden" name="tab" value="@currentTab" />
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0">
+                            <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                        </span>
+                        <input type="text" name="search" value="@search" class="form-control bg-light border-start-0"
+                               placeholder="ค้นหาเลขออเดอร์, ชื่อผู้รับ, เลขพัสดุ..." />
+                        @if (!string.IsNullOrEmpty(search))
+                        {
+                            <a asp-action="Index" asp-route-tab="@currentTab" class="btn btn-outline-secondary">
+                                <i class="fa-solid fa-xmark"></i>
+                            </a>
+                        }
+                        <button type="submit" class="btn btn-success text-nowrap" style="background-color: #2d6a4f; border-color: #2d6a4f;">ค้นหา</button>
+                    </div>
+                </form>
             </div>
         </div>
+    </div>
+
+    <!-- Table of Orders -->
+    <div class="table-responsive">
+        <table class="table table-custom align-middle">
+            <thead>
+                <tr>
+                    <th style="width: 120px;" class="text-nowrap">ออเดอร์</th>
+                    <th style="min-width: 170px;" class="text-nowrap">ผู้รับ & ที่อยู่จัดส่ง</th>
+                    <th style="min-width: 260px;" class="text-nowrap">รายการสินค้าที่ต้องจัดส่ง</th>
+                    <th style="width: 120px;" class="text-end text-nowrap">ยอดสุทธิ</th>
+                    <th style="width: 130px;" class="text-center text-nowrap">สถานะ</th>
+                    <th style="width: 200px;" class="text-end text-nowrap">จัดการ</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var order in Model)
+                    {
+                        <tr>
+                            <!-- Order ID & Date -->
+                            <td class="text-nowrap">
+                                <span class="fw-bold text-dark fs-6 d-block">#@order.OrderId</span>
+                                <small class="text-muted d-block" style="font-size: 0.72rem;">@order.OrderedAt.ToString("dd/MM/yyyy HH:mm")</small>
+                                <span class="badge bg-light text-secondary border mt-1" style="font-size: 0.68rem;">@order.PaymentMethod</span>
+                            </td>
+
+                            <!-- Receiver & Address -->
+                            <td>
+                                <div class="fw-bold text-dark">
+                                    @(order.Address?.ReceiverName ?? (order.User?.FirstName + " " + order.User?.LastName))
+                                </div>
+                                <div class="text-secondary small text-nowrap">
+                                    <i class="fa-solid fa-phone text-muted me-1 small"></i>
+                                    @(order.Address?.Phone ?? order.User?.PhoneNumber ?? "-")
+                                </div>
+                                @if (order.Address != null)
+                                {
+                                    <div class="text-muted small text-truncate" style="max-width: 220px;" title="@order.Address.District, @order.Address.Province @order.Address.PostalCode">
+                                        <i class="fa-solid fa-location-dot text-danger me-1 small"></i>
+                                        @order.Address.District, @order.Address.Province @order.Address.PostalCode
+                                    </div>
+                                }
+                            </td>
+
+                            <!-- Items Summary -->
+                            <td>
+                                @if (order.Orderitems != null && order.Orderitems.Any())
+                                {
+                                    <div class="d-flex flex-column gap-1">
+                                        @foreach (var item in order.Orderitems.Take(2))
+                                        {
+                                            var imgUrl = item.Variant?.ImageUrl ?? item.Variant?.Product?.ImageUrl ?? "https://placehold.co/50x50?text=No+Img";
+                                            <div class="d-flex align-items-center">
+                                                <img src="@imgUrl" class="rounded border me-2 flex-shrink-0" style="width: 38px; height: 38px; object-fit: cover;" alt="Product" />
+                                                <div class="small text-truncate" style="max-width: 220px;">
+                                                    <span class="fw-semibold text-dark">@(item.Variant?.Product?.ProductName ?? "สินค้า")</span>
+                                                    <div class="text-muted" style="font-size: 0.72rem;">
+                                                        @(item.Variant?.Color ?? "-") / ไซส์: @(item.Variant?.Size ?? "-")
+                                                        <strong class="text-primary ms-1">x @item.Quantity ชิ้น</strong>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                        @if (order.Orderitems.Count > 2)
+                                        {
+                                            <span class="text-muted small" style="font-size: 0.72rem;">
+                                                <i class="fa-solid fa-plus me-1"></i>และอีก @(order.Orderitems.Count - 2) รายการ
+                                            </span>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">ไม่มีข้อมูลรายการ</span>
+                                }
+                            </td>
+
+                            <!-- Total Amount -->
+                            <td class="text-end text-nowrap">
+                                <span class="fw-bold text-dark fs-6">฿@order.TotalAmount.ToString("N2")</span>
+                            </td>
+
+                            <!-- Status & Tracking -->
+                            <td class="text-center text-nowrap">
+                                @if (order.Status == "Paid")
+                                {
+                                    <span class="badge bg-warning text-dark px-2 py-1 rounded-pill text-nowrap">
+                                        <i class="fa-solid fa-clock me-1"></i>รอแพ็คสินค้า
+                                    </span>
+                                }
+                                else if (order.Status == "Processing")
+                                {
+                                    <span class="badge bg-info text-dark px-2 py-1 rounded-pill text-nowrap">
+                                        <i class="fa-solid fa-box-open me-1"></i>กำลังแพ็คสินค้า
+                                    </span>
+                                }
+                                else if (order.Status == "Shipped" || order.Status == "Completed")
+                                {
+                                    <span class="badge bg-success px-2 py-1 rounded-pill d-block mb-1 text-nowrap">
+                                        <i class="fa-solid fa-truck-fast me-1"></i>@(order.Status == "Completed" ? "จัดส่งสำเร็จ" : "จัดส่งแล้ว")
+                                    </span>
+                                    @if (!string.IsNullOrEmpty(order.TrackingNumber))
+                                    {
+                                        <small class="font-monospace text-muted d-block text-nowrap" style="font-size: 0.72rem;">@order.TrackingNumber</small>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary px-2 py-1 rounded-pill text-nowrap">@order.Status</span>
+                                }
+                            </td>
+
+                            <!-- Clean, Focused Action Column -->
+                            <td class="text-end text-nowrap">
+                                @if (order.Status == "Paid")
+                                {
+                                    <!-- สถานะ Paid: เริ่มแพ็ค + ใบปะหน้า + ดูรายละเอียด -->
+                                    <div class="d-inline-flex gap-1 align-items-center">
+                                        <form asp-action="PackOrder" method="post" class="d-inline">
+                                            <input type="hidden" name="orderId" value="@order.OrderId" />
+                                            <button type="submit" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold shadow-sm text-nowrap" title="เริ่มแพ็คสินค้า">
+                                                <i class="fa-solid fa-boxes-packing me-1"></i>เริ่มแพ็ค
+                                            </button>
+                                        </form>
+                                        <a asp-action="PrintSlip" asp-route-id="@order.OrderId" target="_blank" class="btn btn-outline-dark btn-sm rounded-pill px-2 text-nowrap" title="พิมพ์ใบจัดส่ง / ปะหน้ากล่อง">
+                                            <i class="fa-solid fa-print"></i>
+                                        </a>
+                                        <a asp-action="OrderDetail" asp-route-id="@order.OrderId" class="btn btn-outline-secondary btn-sm rounded-pill px-2 text-nowrap" title="ดูใบหยิบของ">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </a>
+                                    </div>
+                                }
+                                else if (order.Status == "Processing")
+                                {
+                                    <!-- สถานะ Processing: กรอกเลขพัสดุ + ใบปะหน้า + ดูรายละเอียด -->
+                                    <div class="d-inline-flex gap-1 align-items-center">
+                                        <button type="button" class="btn btn-info btn-sm rounded-pill px-3 fw-bold text-dark shadow-sm text-nowrap"
+                                                data-bs-toggle="modal" data-bs-target="#quickShipModal_@order.OrderId">
+                                            <i class="fa-solid fa-truck-fast me-1"></i>กรอกเลขพัสดุ
+                                        </button>
+                                        <a asp-action="PrintSlip" asp-route-id="@order.OrderId" target="_blank" class="btn btn-outline-dark btn-sm rounded-pill px-2 text-nowrap" title="พิมพ์ใบจัดส่ง / ปะหน้ากล่อง">
+                                            <i class="fa-solid fa-print"></i>
+                                        </a>
+                                        <a asp-action="OrderDetail" asp-route-id="@order.OrderId" class="btn btn-outline-secondary btn-sm rounded-pill px-2 text-nowrap" title="ดูใบหยิบของ">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </a>
+                                    </div>
+
+                                    <!-- Quick Ship Modal -->
+                                    <div class="modal fade text-start" id="quickShipModal_@order.OrderId" tabindex="-1">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content rounded-4 border-0 shadow">
+                                                <form asp-action="ShipOrder" method="post">
+                                                    <input type="hidden" name="orderId" value="@order.OrderId" />
+                                                    <div class="modal-header bg-success text-white py-3">
+                                                        <h6 class="modal-title fw-bold mb-0">
+                                                            <i class="fa-solid fa-truck-fast me-2"></i>บันทึกการจัดส่งออเดอร์ #@order.OrderId
+                                                        </h6>
+                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body p-4">
+                                                        <div class="mb-3">
+                                                            <small class="text-secondary d-block mb-1">ผู้รับพัสดุ:</small>
+                                                            <div class="fw-bold text-dark">@(order.Address?.ReceiverName ?? order.User?.FirstName) • @(order.Address?.Phone ?? order.User?.PhoneNumber)</div>
+                                                            <small class="text-muted">@(order.Address?.District), @(order.Address?.Province) @(order.Address?.PostalCode)</small>
+                                                        </div>
+
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold small">บริษัทขนส่ง</label>
+                                                            <select name="courier" class="form-select">
+                                                                <option value="Flash Express">Flash Express</option>
+                                                                <option value="Kerry Express">Kerry Express</option>
+                                                                <option value="ไปรษณีย์ไทย EMS">ไปรษณีย์ไทย EMS</option>
+                                                                <option value="J&T Express">J&T Express</option>
+                                                                <option value="SPX Express">SPX Express</option>
+                                                            </select>
+                                                        </div>
+
+                                                        <div class="mb-2">
+                                                            <label class="form-label fw-bold small">เลขพัสดุ <span class="text-danger">*</span></label>
+                                                            <input type="text" name="trackingNumber" class="form-control form-control-lg font-monospace"
+                                                                   placeholder="เช่น TH0123456789" required autofocus />
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer border-top-0 pt-0">
+                                                        <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">ยกเลิก</button>
+                                                        <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold">
+                                                            <i class="fa-solid fa-check me-1"></i>ยืนยันจัดส่งเรียบร้อย
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <!-- สถานะ Shipped หรืออื่นๆ: ดูรายละเอียด และพิมพ์ใบปะหน้า -->
+                                    <div class="d-inline-flex gap-1 align-items-center">
+                                        <a asp-action="OrderDetail" asp-route-id="@order.OrderId" class="btn btn-outline-dark btn-sm rounded-pill px-3 text-nowrap">
+                                            <i class="fa-solid fa-eye me-1"></i>ดูรายละเอียด
+                                        </a>
+                                        <a asp-action="PrintSlip" asp-route-id="@order.OrderId" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill px-2 text-nowrap" title="พิมพ์ใบจัดส่ง">
+                                            <i class="fa-solid fa-print"></i>
+                                        </a>
+                                    </div>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="py-4">
+                                <i class="fa-solid fa-circle-check fs-1 text-success opacity-50 mb-3 d-block"></i>
+                                <h5 class="text-dark fw-bold">ไม่มีรายการคำสั่งซื้อค้างในหมวดหมู่นี้</h5>
+                                <p class="text-secondary small mb-3">
+                                    @(string.IsNullOrEmpty(search) ? "ยอดเยี่ยม! จัดการออเดอร์ในหมวดหมู่นี้ครบถ้วนแล้ว" : $"ไม่พบผลการค้นหาสำหรับ \"{search}\"")
+                                </p>
+                                @if (!string.IsNullOrEmpty(search))
+                                {
+                                    <a asp-action="Index" asp-route-tab="@currentTab" class="btn btn-outline-success btn-sm rounded-pill px-3">
+                                        ล้างการค้นหา
+                                    </a>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Footer Summary -->
+    <div class="card-footer bg-white border-top py-2 px-3 text-secondary small d-flex justify-content-between align-items-center">
+        <span>จำนวนคำสั่งซื้อในหน้านี้: <strong>@(Model?.Count() ?? 0)</strong> รายการ</span>
+        <span>อัปเดตอัตโนมัติ • เสื้อผ้า.com Staff</span>
     </div>
 </div>

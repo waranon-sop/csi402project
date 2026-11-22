@@ -1,0 +1,204 @@
+@model waranon_csi402.Models.Order
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ใบปะหน้าพัสดุและรายการสินค้า - คำสั่งซื้อ #@Model.OrderId</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: #f1f5f9;
+            color: #1e293b;
+            padding: 20px;
+        }
+
+        .paper {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border: 1px solid #e2e8f0;
+        }
+
+        .barcode-box {
+            font-family: 'Courier New', monospace;
+            letter-spacing: 4px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            padding: 6px 12px;
+            background: #f8fafc;
+            border: 2px dashed #94a3b8;
+            display: inline-block;
+        }
+
+        @@media print {
+            body {
+                background: #ffffff !important;
+                padding: 0 !important;
+            }
+            .paper {
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                max-width: 100% !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Print Control Bar (Screen only) -->
+    <div class="no-print max-w-800 mx-auto mb-3 d-flex justify-content-between align-items-center" style="max-width: 800px;">
+        <a href="javascript:window.close()" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="fa-solid fa-arrow-left me-1"></i>ปิดหน้านี้
+        </a>
+        <button onclick="window.print()" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">
+            <i class="fa-solid fa-print me-1"></i>สั่งพิมพ์ (Print)
+        </button>
+    </div>
+
+    <div class="paper">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
+            <div>
+                <h3 class="fw-bold text-success mb-1">
+                    <i class="fa-solid fa-shirt me-2"></i>เสื้อผ้า.com
+                </h3>
+                <small class="text-muted">ใบปะหน้ากล่องพัสดุและรายการจัดส่งสินค้า (Packing Slip)</small>
+            </div>
+            <div class="text-end">
+                <div class="barcode-box mb-1">
+                    *ORD-@Model.OrderId*
+                </div>
+                <div class="small text-muted">คำสั่งซื้อ: <strong>#@Model.OrderId</strong></div>
+                <div class="small text-muted">วันที่: @Model.OrderedAt.ToString("dd/MM/yyyy HH:mm") น.</div>
+            </div>
+        </div>
+
+        <!-- Sender & Receiver Box -->
+        <div class="row g-3 mb-4">
+            <!-- Sender -->
+            <div class="col-6">
+                <div class="p-3 rounded border bg-light h-100">
+                    <div class="fw-bold text-secondary small text-uppercase mb-2">
+                        <i class="fa-solid fa-store me-1"></i>ผู้ส่ง (Sender):
+                    </div>
+                    <div class="fw-bold text-dark">ร้าน เสื้อผ้า.com (คลังสินค้าหลัก)</div>
+                    <div class="small text-secondary mt-1">
+                        123 อาคารศูนย์กระจายสินค้า แขวงคลองเตย เขตคลองเตย<br />
+                        กรุงเทพมหานคร 10110<br />
+                        โทร: 02-999-8888
+                    </div>
+                </div>
+            </div>
+
+            <!-- Receiver -->
+            <div class="col-6">
+                <div class="p-3 rounded border border-2 border-dark h-100 bg-white">
+                    <div class="fw-bold text-danger small text-uppercase mb-2">
+                        <i class="fa-solid fa-location-dot me-1"></i>ผู้รับ (Deliver To):
+                    </div>
+                    <div class="fw-bold text-dark fs-5">
+                        @(Model.Address?.ReceiverName ?? (Model.User?.FirstName + " " + Model.User?.LastName))
+                    </div>
+                    <div class="fw-bold text-primary mb-1">
+                        โทร: @(Model.Address?.Phone ?? Model.User?.PhoneNumber ?? "-")
+                    </div>
+                    @if (Model.Address != null)
+                    {
+                        <div class="small text-dark" style="line-height: 1.5;">
+                            @Model.Address.AddressLine<br />
+                            เขต/อำเภอ @Model.Address.District จังหวัด @Model.Address.Province<br />
+                            <strong class="fs-6 text-dark">รหัสไปรษณีย์: @Model.Address.PostalCode</strong>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.TrackingNumber))
+        {
+            <div class="alert alert-light border d-flex justify-content-between align-items-center mb-4 py-2">
+                <div>
+                    <span class="small text-secondary d-block">หมายเลขพัสดุจัดส่ง (Tracking Number):</span>
+                    <strong class="fs-5 font-monospace text-dark">@Model.TrackingNumber</strong>
+                </div>
+                <div class="barcode-box">
+                    *@Model.TrackingNumber*
+                </div>
+            </div>
+        }
+
+        <!-- Packing Items Table -->
+        <div class="mb-4">
+            <h6 class="fw-bold text-dark mb-2">
+                <i class="fa-solid fa-box-open text-success me-1"></i>รายการสินค้าที่บรรจุภายในกล่อง
+            </h6>
+            <table class="table table-bordered table-sm align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 40px;" class="text-center">#</th>
+                        <th>ชื่อสินค้า</th>
+                        <th style="width: 140px;" class="text-center">สี / ไซส์</th>
+                        <th style="width: 90px;" class="text-center">SKU ID</th>
+                        <th style="width: 90px;" class="text-center">จำนวน</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Orderitems != null && Model.Orderitems.Any())
+                    {
+                        int index = 1;
+                        @foreach (var item in Model.Orderitems)
+                        {
+                            <tr>
+                                <td class="text-center">@index</td>
+                                <td>
+                                    <strong>@(item.Variant?.Product?.ProductName ?? "เสื้อผ้าแฟชั่น")</strong>
+                                </td>
+                                <td class="text-center">
+                                    @(item.Variant?.Color ?? "-") / Size: @(item.Variant?.Size ?? "-")
+                                </td>
+                                <td class="text-center font-monospace small">
+                                    #@(item.Variant?.VariantId ?? 0)
+                                </td>
+                                <td class="text-center fw-bold fs-6">
+                                    @item.Quantity
+                                </td>
+                            </tr>
+                            index++;
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer Notes & Signature -->
+        <div class="row pt-3 border-top mt-4 text-secondary small">
+            <div class="col-6">
+                <div>* กรุณาถ่ายวิดีโอขณะเปิดกล่องพัสดุไว้เป็นหลักฐาน</div>
+                <div>* หากพบสินค้าชำรุด ติดต่อฝ่ายบริการลูกค้าได้ตลอด 24 ชม.</div>
+            </div>
+            <div class="col-6 text-end">
+                <div>เจ้าหน้าที่ผู้ตรวจสอบและแพ็คของ: ____________________</div>
+                <div class="mt-2">วันที่ตรวจสอบ: @DateTime.Now.ToString("dd/MM/yyyy HH:mm") น.</div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
+
